@@ -29,7 +29,7 @@ export function DashboardNav() {
             className={cn(
               "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors",
               active
-                ? "bg-forest text-ivory"
+                ? "bg-forest text-white"
                 : "text-charcoal/70 hover:bg-forest/5 hover:text-forest",
             )}
           >

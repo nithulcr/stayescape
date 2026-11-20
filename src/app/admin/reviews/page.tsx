@@ -41,7 +41,7 @@ export default async function AdminReviewsPage({
             className={cn(
               "rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
               active === filter.key
-                ? "bg-forest text-ivory"
+                ? "bg-forest text-white"
                 : "bg-sand/60 text-forest hover:bg-sand",
             )}
           >
@@ -83,7 +83,7 @@ export default async function AdminReviewsPage({
               <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-forest/10 pt-4">
                 <Link
                   href={`/properties/${review.property_slug}#reviews`}
-                  className="text-xs font-semibold text-forest"
+                  className="text-sm font-semibold text-forest"
                 >
                   View property
                 </Link>

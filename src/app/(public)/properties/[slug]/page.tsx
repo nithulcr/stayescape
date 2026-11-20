@@ -200,7 +200,7 @@ export default async function PropertyPage({
                   {property.owner_avatar ? (
                     <Image src={property.owner_avatar} alt="" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
                   ) : (
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-forest text-sm text-ivory">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-forest text-sm text-white">
                       {property.owner_name.charAt(0)}
                     </span>
                   )}

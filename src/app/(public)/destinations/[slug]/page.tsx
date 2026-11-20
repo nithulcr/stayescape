@@ -43,14 +43,14 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
       <section className="relative isolate min-h-[440px] overflow-hidden bg-forest-deep">
         <Image src={image} alt={destination.name} fill priority sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest-deep/90 via-forest-deep/45 to-forest-deep/40" />
-        <div className="site-container relative flex min-h-[440px] flex-col justify-end pb-12 pt-20 text-ivory">
-          <Link href="/destinations" className="inline-flex items-center gap-1.5 text-xs text-ivory/70 hover:text-ivory">
+        <div className="site-container relative flex min-h-[440px] flex-col justify-end pb-12 pt-20 text-white">
+          <Link href="/destinations" className="inline-flex items-center gap-1.5 text-xs text-white/70 hover:text-white">
             <ArrowLeft size={13} /> All destinations
           </Link>
           <p className="mt-6 text-[0.7rem] uppercase tracking-[0.22em] text-gold-soft">{destination.state}</p>
           <h1 className="display-title mt-2 text-[clamp(2.6rem,7vw,4.8rem)]">{destination.name}</h1>
           {destination.short_description && (
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ivory/80 md:text-base">
+            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/80 md:text-base">
               {destination.short_description}
             </p>
           )}
@@ -100,7 +100,6 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
             <div className="flex flex-wrap gap-3">
               {destinations
                 .filter((item) => item.id !== destination.id)
-                .slice(0, 8)
                 .map((item) => (
                   <Link key={item.id} href={`/destinations/${item.slug}`} className="btn-secondary">
                     {item.name} <ArrowRight size={13} />

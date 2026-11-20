@@ -96,7 +96,7 @@ export function PropertyFiltersBar({
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-forest/10 pt-4">
         <button type="button" onClick={() => setOpen((value) => !value)} className="btn-secondary !py-2">
           <SlidersHorizontal size={14} /> More filters
-          {activeCount > 0 && <span className="rounded-full bg-forest px-1.5 text-[0.65rem] text-ivory">{activeCount}</span>}
+          {activeCount > 0 && <span className="rounded-full bg-forest px-1.5 text-[0.65rem] text-white">{activeCount}</span>}
         </button>
         <div className="flex items-center gap-3">
           <select name="sort" defaultValue={filters.sort ?? "newest"} className="input-field !w-auto !py-2">

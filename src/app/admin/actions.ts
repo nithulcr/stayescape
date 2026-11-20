@@ -6,6 +6,7 @@ import { storageBucket } from "@/lib/config";
 import { persistProperty } from "@/lib/properties/save-property";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { getServerClient } from "@/lib/supabase/server";
+import { getDestinationImageStoragePath } from "@/lib/utils";
 import {
   categorySchema,
   destinationSchema,
@@ -25,6 +26,7 @@ async function client(): Promise<Client | null> {
 }
 
 function revalidateAdmin() {
+  revalidatePath("/", "layout");
   revalidatePath("/admin");
   revalidatePath("/admin/users");
   revalidatePath("/admin/properties");
@@ -37,6 +39,13 @@ function revalidateAdmin() {
   revalidatePath("/admin/settings");
   revalidatePath("/properties");
   revalidatePath("/destinations");
+}
+
+function destinationDatabaseError(action: string, message: string) {
+  if (message.toLowerCase().includes("permission denied")) {
+    return `You do not have permission to ${action} this destination.`;
+  }
+  return message;
 }
 
 export async function setPropertyStatusAction(formData: FormData) {
@@ -334,10 +343,38 @@ export async function saveDestinationAction(
     sort_order: parsed.data.sort_order,
   };
 
-  const result = id
+  let previousImageUrl: string | null = null;
+  if (id) {
+    const { data: existing, error: lookupError } = await supabase
+      .from("destinations")
+      .select("image_url")
+      .eq("id", id)
+      .maybeSingle();
+    if (lookupError) {
+      return {
+        ok: false,
+        message: `Unable to load destination: ${destinationDatabaseError("edit", lookupError.message)}`,
+      };
+    }
+    if (!existing) return { ok: false, message: "Destination not found." };
+    previousImageUrl = existing.image_url;
+  }
+
+  const { error } = id
     ? await supabase.from("destinations").update(payload).eq("id", id)
     : await supabase.from("destinations").insert(payload);
-  if (result.error) return { ok: false, message: result.error.message };
+  if (error) {
+    const action = id ? "update" : "add";
+    return {
+      ok: false,
+      message: `Unable to ${action} destination: ${destinationDatabaseError(action, error.message)}`,
+    };
+  }
+
+  if (previousImageUrl && previousImageUrl !== payload.image_url) {
+    const previousPath = getDestinationImageStoragePath(previousImageUrl);
+    if (previousPath) await supabase.storage.from(storageBucket).remove([previousPath]);
+  }
 
   revalidateAdmin();
   return { ok: true, message: id ? "Destination updated." : "Destination added." };
@@ -349,7 +386,19 @@ export async function deleteDestinationAction(formData: FormData) {
   if (!supabase) return;
   const id = parseOptional(formData.get("destinationId"));
   if (!id) return;
-  await supabase.from("destinations").delete().eq("id", id);
+
+  const { data: destination } = await supabase
+    .from("destinations")
+    .select("image_url")
+    .eq("id", id)
+    .maybeSingle();
+  if (!destination) return;
+
+  const { error } = await supabase.from("destinations").delete().eq("id", id);
+  if (error) return;
+
+  const imagePath = getDestinationImageStoragePath(destination.image_url);
+  if (imagePath) await supabase.storage.from(storageBucket).remove([imagePath]);
   revalidateAdmin();
 }
 

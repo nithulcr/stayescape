@@ -182,7 +182,7 @@ export function PropertyCard({ property }: { property: PropertyListItem }) {
           </span>
           <Link
             href={`/properties/${property.slug}`}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-forest transition-all group-hover:gap-2"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-forest transition-all group-hover:gap-2"
           >
             View stay <ArrowUpRight size={13} />
           </Link>

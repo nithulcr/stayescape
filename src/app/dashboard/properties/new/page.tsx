@@ -20,7 +20,7 @@ export default async function NewPropertyPage() {
         Your listing will be submitted for review. You can add photos after it is created.
       </p>
       {plan.entitlement === "admin_bypass" && (
-        <p className="mt-5 rounded-lg bg-forest-deep px-4 py-3 text-sm text-ivory">
+        <p className="mt-5 rounded-lg bg-forest-deep px-4 py-3 text-sm text-white">
           {plan.limits.planName} — unlimited properties, photos and enhanced fields are available.
         </p>
       )}

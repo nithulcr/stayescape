@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LayoutDashboard, LogOut, Menu, ShieldCheck, X } from "lucide-react";
-import { Logo } from "@/components/ui/logo";
+import Image from "next/image";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { logoutAction } from "@/app/auth/actions";
 import { cn } from "@/lib/utils";
@@ -63,11 +63,29 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-forest/10 bg-ivory/95 backdrop-blur-md">
       <div className="site-container flex h-[90px] items-center justify-between gap-6">
-        <Logo />
+        <Link
+          href="/"
+          className="flex items-center gap-2.5"
+          aria-label={`${user ? user.name : "Stayscape"} home`}
+        >
+          <Image
+            src="/logo2.png"
+            width="300"
+            height="70"
+            alt={user ? user.name : "Stayscape"}
+            className="object-contain items-start w-fit h-[65px]"
+          />
+        </Link>
 
-        <nav className="hidden items-center gap-7 lg:flex" aria-label="Primary navigation">
+        <nav
+          className="hidden items-center gap-7 lg:flex"
+          aria-label="Primary navigation"
+        >
           {links.map((link) => {
-            const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+            const active =
+              link.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}
@@ -78,7 +96,9 @@ export function SiteHeader() {
                 )}
               >
                 {link.label}
-                {active && <span className="absolute inset-x-0 -bottom-0.5 h-px bg-gold" />}
+                {active && (
+                  <span className="absolute inset-x-0 -bottom-0.5 h-px bg-gold" />
+                )}
               </Link>
             );
           })}
@@ -91,18 +111,28 @@ export function SiteHeader() {
                 href={isAdmin ? "/admin" : "/dashboard"}
                 className="btn-secondary !px-4 !py-2"
               >
-                {isAdmin ? <ShieldCheck size={15} /> : <LayoutDashboard size={15} />}
+                {isAdmin ? (
+                  <ShieldCheck size={15} />
+                ) : (
+                  <LayoutDashboard size={15} />
+                )}
                 {isAdmin ? "Admin" : "Dashboard"}
               </Link>
               <form action={logoutAction}>
-                <button type="submit" className="inline-flex items-center gap-1.5 px-1 text-xs font-medium text-muted hover:text-forest">
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-1.5 px-1 text-xs font-medium text-muted hover:text-forest"
+                >
                   <LogOut size={14} /> Logout
                 </button>
               </form>
             </>
           ) : (
             <>
-              <Link href="/login" className="px-2 text-sm font-medium text-forest hover:text-forest-soft">
+              <Link
+                href="/login"
+                className="px-2 text-sm font-medium text-forest hover:text-forest-soft"
+              >
                 Login
               </Link>
               <Link href="/register" className="btn-primary !px-4 !py-2">
@@ -129,17 +159,21 @@ export function SiteHeader() {
             {links.map((link) => (
               <Link
                 key={link.href}
-                 href={link.href}
-                 onClick={closeMenu}
-                 className="border-b border-forest/8 py-3 text-sm font-medium text-forest"
-               >
+                href={link.href}
+                onClick={closeMenu}
+                className="border-b border-forest/8 py-3 text-sm font-medium text-forest"
+              >
                 {link.label}
               </Link>
             ))}
             <div className="mt-4 grid gap-3">
               {user ? (
                 <>
-                  <Link href={isAdmin ? "/admin" : "/dashboard"} onClick={closeMenu} className="btn-primary">
+                  <Link
+                    href={isAdmin ? "/admin" : "/dashboard"}
+                    onClick={closeMenu}
+                    className="btn-primary"
+                  >
                     {isAdmin ? "Admin dashboard" : "Owner dashboard"}
                   </Link>
                   <form action={logoutAction}>
@@ -150,8 +184,20 @@ export function SiteHeader() {
                 </>
               ) : (
                 <>
-                  <Link href="/login" onClick={closeMenu} className="btn-secondary">Login</Link>
-                  <Link href="/register" onClick={closeMenu} className="btn-primary">Create account</Link>
+                  <Link
+                    href="/login"
+                    onClick={closeMenu}
+                    className="btn-secondary"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={closeMenu}
+                    className="btn-primary"
+                  >
+                    Create account
+                  </Link>
                 </>
               )}
             </div>

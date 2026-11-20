@@ -27,7 +27,7 @@ export default async function PricingPage() {
 
       <div className="mx-auto mt-12 grid max-w-5xl gap-6 lg:grid-cols-2">
         <div className="surface-card flex flex-col p-7">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Starter</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Starter</p>
           <h2 className="mt-2 font-serif text-3xl text-forest-deep">{free.planName}</h2>
           <p className="mt-2 text-sm text-muted">For owners testing the platform with one property.</p>
           <p className="mt-6 font-serif text-4xl text-forest-deep">
@@ -45,24 +45,24 @@ export default async function PricingPage() {
           </Link>
         </div>
 
-        <div className="relative flex flex-col rounded-xl border border-gold/50 bg-forest-deep p-7 text-ivory shadow-[0_20px_60px_-30px_rgba(18,61,50,0.8)]">
+        <div className="relative flex flex-col rounded-xl border border-gold/50 bg-forest-deep p-7 text-white shadow-[0_20px_60px_-30px_rgba(18,61,50,0.8)]">
           <span className="absolute right-6 top-6 inline-flex items-center gap-1 rounded-full bg-gold px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-wider text-forest-deep">
             <Crown size={11} /> Most popular
           </span>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-soft">Growth</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold-soft">Growth</p>
           <h2 className="mt-2 font-serif text-3xl">{premium.planName}</h2>
-          <p className="mt-2 text-sm text-ivory/65">For hosts with multiple properties and bigger ambitions.</p>
+          <p className="mt-2 text-sm text-white/65">For hosts with multiple properties and bigger ambitions.</p>
           <div className="mt-6 grid grid-cols-2 gap-4">
             <div>
               <p className="font-serif text-3xl">{formatINR(premium.priceMonthly)}</p>
-              <p className="mt-1 text-xs text-ivory/55">per month</p>
+              <p className="mt-1 text-xs text-white/55">per month</p>
             </div>
             <div>
               <p className="font-serif text-3xl">{formatINR(premium.priceYearly)}</p>
-              <p className="mt-1 text-xs text-ivory/55">per year</p>
+              <p className="mt-1 text-xs text-white/55">per year</p>
             </div>
           </div>
-          <ul className="mt-7 flex-1 space-y-3 text-sm text-ivory/80">
+          <ul className="mt-7 flex-1 space-y-3 text-sm text-white/80">
             {premium.features.map((feature) => (
               <li key={feature} className="flex items-start gap-2">
                 <Check size={15} className="mt-0.5 shrink-0 text-gold" /> {feature}
@@ -70,7 +70,7 @@ export default async function PricingPage() {
             ))}
           </ul>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            <div className="[&_button]:!border-ivory/30 [&_button]:!bg-transparent [&_button]:!text-ivory">
+            <div className="[&_button]:!border-ivory/30 [&_button]:!bg-transparent [&_button]:!text-white">
               <CheckoutButton billingCycle="monthly" label="Monthly" />
             </div>
             <CheckoutButton billingCycle="yearly" label="Yearly" />

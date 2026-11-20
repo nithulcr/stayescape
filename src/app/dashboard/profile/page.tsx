@@ -19,7 +19,7 @@ export default async function ProfilePage() {
           {profile?.avatar_url ? (
             <Image src={profile.avatar_url} alt="" width={72} height={72} className="h-18 w-18 rounded-full object-cover" />
           ) : (
-            <span className="flex h-18 w-18 items-center justify-center rounded-full bg-forest text-2xl text-ivory">
+            <span className="flex h-18 w-18 items-center justify-center rounded-full bg-forest text-2xl text-white">
               {(profile?.full_name ?? context.user.email ?? "S").charAt(0).toUpperCase()}
             </span>
           )}

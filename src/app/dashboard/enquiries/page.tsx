@@ -31,7 +31,7 @@ export default async function DashboardEnquiriesPage() {
                     {enquiry.property_name} · {formatDate(enquiry.created_at)}
                   </p>
                 </div>
-                <Link href={`/properties/${enquiry.property_slug}`} className="text-xs font-semibold text-forest">
+                <Link href={`/properties/${enquiry.property_slug}`} className="text-sm font-semibold text-forest">
                   View property
                 </Link>
               </div>

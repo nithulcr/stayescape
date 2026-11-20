@@ -25,7 +25,7 @@ export default async function SubscriptionPage({
       <h1 className="display-title mt-3 text-4xl">Manage your plan.</h1>
 
       {plan.entitlement === "admin_bypass" && (
-        <p className="mt-6 inline-flex items-center gap-2 rounded-lg bg-forest-deep px-4 py-3 text-sm text-ivory">
+        <p className="mt-6 inline-flex items-center gap-2 rounded-lg bg-forest-deep px-4 py-3 text-sm text-white">
           <CheckCircle2 size={16} /> All features are enabled by your administrator role. No subscription is required.
         </p>
       )}

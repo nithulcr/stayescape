@@ -21,14 +21,7 @@ A premium property discovery and listing marketplace for Kerala, built with Next
 
 2. Copy `.env.example` to `.env.local` and fill the Supabase values.
 
-3. In Supabase SQL Editor, run:
-
-   ```sql
-   -- 1
-   supabase/migrations/0001_initial_schema.sql
-   -- 2
-   supabase/seed.sql
-   ```
+3. In Supabase SQL Editor, run the files in `supabase/migrations/` in filename order, then `supabase/seed.sql`.
 
    Or use the Supabase CLI: `supabase db push`.
 

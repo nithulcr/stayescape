@@ -97,7 +97,7 @@ export function ImageUploader({
               <div className="relative aspect-[4/3] bg-sand">
                 <Image src={image.public_url} alt={image.alt_text ?? ""} fill sizes="300px" className="object-cover" />
                 {image.is_cover && (
-                  <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-forest/90 px-2 py-1 text-[0.62rem] text-ivory">
+                  <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-forest/90 px-2 py-1 text-[0.62rem] text-white">
                     <Star size={10} fill="currentColor" /> Cover
                   </span>
                 )}
@@ -107,7 +107,7 @@ export function ImageUploader({
                   <form action={adminMode ? setCoverImageAdminAction : setCoverImageAction}>
                     <input type="hidden" name="propertyId" value={propertyId} />
                     <input type="hidden" name="imageId" value={image.id} />
-                    <button type="submit" className="inline-flex items-center gap-1 text-xs font-semibold text-forest">
+                    <button type="submit" className="inline-flex items-center gap-1 text-sm font-semibold text-forest">
                       <Star size={13} /> Set cover
                     </button>
                   </form>

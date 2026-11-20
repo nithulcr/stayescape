@@ -4,7 +4,7 @@
   --color-forest: #123d32;
   --color-forest-deep: #0c2b23;
   --color-forest-soft: #1e5a49;
-  --color-gold: #c5a46d;
+  --color-gold: #fcab01;
   --color-gold-soft: #e4d3b3;
   --color-ivory: #f7f4ec;
   --color-sand: #efe9dc;
@@ -15,10 +15,6 @@
 }
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-
   body {
     background-color: var(--color-ivory);
     color: var(--color-charcoal);
@@ -50,7 +46,10 @@
       padding-inline: 2.5rem;
     }
   }
+ .font-heading{
+    font-family: var(--font-serif);
 
+ }
   .section-space {
     padding-block: 4.5rem;
   }
@@ -142,7 +141,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: 0.625rem;
+    border-radius: 0rem;
     background-color: var(--color-forest);
     padding: 0.8rem 1.4rem;
     font-size: 0.875rem;
@@ -166,7 +165,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: 0.625rem;
+    border-radius: 0;
     border: 1px solid rgba(18, 61, 50, 0.2);
     padding: 0.78rem 1.35rem;
     font-size: 0.875rem;
@@ -208,10 +207,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
   *,
   *::before,
   *::after {

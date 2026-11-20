@@ -60,3 +60,20 @@ export function getImagePublicUrl(path: string) {
   if (!base) return "";
   return `${base.replace(/\/$/, "")}/storage/v1/object/public/${process.env.NEXT_PUBLIC_STORAGE_BUCKET || "property-images"}/${path}`;
 }
+
+export function getDestinationImageStoragePath(publicUrl: string | null | undefined) {
+  if (!publicUrl) return null;
+  try {
+    const url = new URL(publicUrl);
+    const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (!base || url.origin !== new URL(base).origin) return null;
+    const bucket = process.env.NEXT_PUBLIC_STORAGE_BUCKET || "property-images";
+    const prefix = `/storage/v1/object/public/${bucket}/`;
+    if (!url.pathname.startsWith(prefix)) return null;
+    const path = decodeURIComponent(url.pathname.slice(prefix.length));
+    if (!/^destinations\/[A-Za-z0-9._-]+$/.test(path) || path.includes("..")) return null;
+    return path;
+  } catch {
+    return null;
+  }
+}

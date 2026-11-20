@@ -43,7 +43,7 @@ export default async function HomePage() {
             </div>
           </Reveal>
           <Suspense fallback={null}>
-            <DestinationGrid destinations={destinations} />
+            <DestinationGrid destinations={destinations} limit={8} />
           </Suspense>
         </div>
       </section>

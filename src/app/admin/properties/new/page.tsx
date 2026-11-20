@@ -27,7 +27,7 @@ export default async function NewAdminPropertyPage() {
         Create a listing directly from the admin console and choose which account owns it. Photos can be added after creation.
       </p>
       {plan.entitlement === "admin_bypass" && (
-        <p className="mt-5 rounded-lg bg-forest-deep px-4 py-3 text-sm text-ivory">
+        <p className="mt-5 rounded-lg bg-forest-deep px-4 py-3 text-sm text-white">
           {plan.limits.planName} — unlimited properties, photos and enhanced fields are available.
         </p>
       )}

@@ -38,7 +38,7 @@ export default async function AdminCategoriesPage() {
                   <td className="px-5 py-4"><StatusPill status={category.is_active ? "active" : "expired"}>{category.is_active ? "Active" : "Hidden"}</StatusPill></td>
                   <td className="px-5 py-4">
                     <div className="flex gap-3">
-                      <Link href={`/admin/categories/${category.id}`} className="text-xs font-semibold text-forest">Edit</Link>
+                      <Link href={`/admin/categories/${category.id}`} className="text-sm font-semibold text-forest">Edit</Link>
                       <form action={deleteCategoryAction}>
                         <input type="hidden" name="categoryId" value={category.id} />
                         <button type="submit" className="text-xs text-rose-600">Delete</button>

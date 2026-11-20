@@ -43,13 +43,13 @@ export function AdminNav() {
             key={link.href}
             href={link.href}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs transition-colors",
+              "flex items-center gap-2.5 rounded-lg px-3 py-2  transition-colors",
               active
                 ? "bg-gold text-forest-deep"
-                : "text-ivory/65 hover:bg-ivory/10 hover:text-ivory",
+                : "text-white/65 hover:bg-ivory/10 hover:text-white",
             )}
           >
-            <link.icon size={14} />
+            <link.icon size={16} />
             {link.label}
           </Link>
         );

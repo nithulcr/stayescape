@@ -70,7 +70,7 @@ export default async function DashboardPage() {
         <section className="surface-card overflow-hidden">
           <div className="flex items-center justify-between border-b border-forest/10 px-6 py-4">
             <h2 className="font-serif text-xl text-forest-deep">Recent properties</h2>
-            <Link href="/dashboard/properties" className="text-xs font-semibold text-forest">View all</Link>
+            <Link href="/dashboard/properties" className="text-sm font-semibold text-forest">View all</Link>
           </div>
           {properties.length ? (
             <div className="divide-y divide-forest/8">

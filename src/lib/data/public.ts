@@ -2,6 +2,7 @@ import "server-only";
 
 import { getServerClient } from "@/lib/supabase/server";
 import { fallbackPropertyImage } from "@/lib/media";
+import { slugify } from "@/lib/utils";
 import type {
   AmenityRow,
   CategoryRow,
@@ -158,7 +159,7 @@ function toListItem(
 }
 
 function sanitizeSearch(value: string | undefined) {
-  return (value ?? "").replace(/[%_,()\\]/g, "").trim().slice(0, 80);
+  return (value ?? "").replace(/[%_,()\\.*'"]/g, "").trim().slice(0, 80);
 }
 
 export async function getPublishedProperties(
@@ -173,11 +174,28 @@ export async function getPublishedProperties(
     let query = supabase.from("properties").select("*", { count: "exact" }).eq("status", "approved");
 
     const search = sanitizeSearch(filters.q);
-    if (search) query = query.ilike("name", `%${search}%`);
+    if (search) {
+      const needle = search.toLowerCase();
+      const destinationIds = [...lookups.destinations.values()]
+        .filter(
+          (item) =>
+            item.slug.toLowerCase().includes(needle) ||
+            item.name.toLowerCase().includes(needle) ||
+            item.state.toLowerCase().includes(needle),
+        )
+        .map((item) => item.id);
+      query = destinationIds.length
+        ? query.or(`name.ilike.*${search}*,destination_id.in.(${destinationIds.join(",")})`)
+        : query.ilike("name", `%${search}%`);
+    }
 
     if (filters.destination) {
+      const requested = filters.destination.trim().toLowerCase();
       const destination = [...lookups.destinations.values()].find(
-        (item) => item.slug === filters.destination,
+        (item) =>
+          item.slug.toLowerCase() === requested ||
+          slugify(item.name) === requested ||
+          item.name.trim().toLowerCase() === requested,
       );
       if (!destination) return { items: [], total: 0 };
       query = query.eq("destination_id", destination.id);

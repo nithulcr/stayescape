@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { brand, siteUrl } from "@/lib/config";
 import { Boldonse, Roboto } from "next/font/google";
 import "./globals.css";
+import "lenis/dist/lenis.css";
 const boldonse = Boldonse({
   subsets: ["latin"],
   weight: "400",
@@ -56,7 +57,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={`${boldonse.variable} ${roboto.variable}`}>
+    <html lang="en" className={`${boldonse.variable} ${roboto.variable}`}>
       <body>{children}</body>
     </html>
   );

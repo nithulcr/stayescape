@@ -39,10 +39,10 @@ export default async function AdminDestinationsPage() {
                     <p className="mt-1 text-xs text-muted">/{destination.slug} · order {destination.sort_order}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Link href={`/admin/destinations/${destination.id}`} className="text-xs font-semibold text-forest">Edit</Link>
-                    <form action={deleteDestinationAction}>
-                      <input type="hidden" name="destinationId" value={destination.id} />
-                      <button type="submit" className="text-xs text-rose-600">Delete</button>
+                    <Link href={`/admin/destinations/${destination.id}`} className="text-sm font-semibold text-forest">Edit</Link>
+                    <form className="flex" action={deleteDestinationAction}>
+                      <input type="hidden" className="text-sm" name="destinationId" value={destination.id} />
+                      <button type="submit" className="text-sm text-rose-600">Delete</button>
                     </form>
                   </div>
                 </article>

@@ -38,26 +38,26 @@ export default function ListYourPropertyPage() {
       <section className="relative isolate overflow-hidden bg-forest-deep">
         <Image src={media.heroPortrait} alt="Elegant hotel exterior" fill priority sizes="100vw" className="object-cover opacity-40" />
         <div className="absolute inset-0 bg-gradient-to-r from-forest-deep/95 via-forest-deep/75 to-transparent" />
-        <div className="site-container relative grid gap-10 py-20 text-ivory md:py-28 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div className="site-container relative grid gap-10 py-20 text-white md:py-28 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
             <p className="eyebrow !text-gold-soft">For property owners</p>
             <h1 className="display-title mt-4 text-[clamp(2.5rem,6vw,4.4rem)]">
               Put your property on the map.
             </h1>
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-ivory/75 md:text-base">
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/75 md:text-base">
               STAYSCAPE connects independent owners with travellers who care about setting, character and thoughtful hospitality.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/register?role=owner" className="btn-primary !bg-gold !text-forest-deep hover:!bg-[#d8b87f]">
                 Create owner account <ArrowRight size={15} />
               </Link>
-              <Link href="/pricing" className="btn-secondary !border-ivory/30 !bg-transparent !text-ivory hover:!bg-ivory/10">
+              <Link href="/pricing" className="btn-secondary !border-ivory/30 !bg-transparent !text-white hover:!bg-ivory/10">
                 View plans
               </Link>
             </div>
           </div>
           <div className="surface-card !bg-ivory/95 p-7 text-forest-deep">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Why list with us</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Why list with us</p>
             <ul className="mt-5 space-y-4 text-sm">
               {[
                 "Premium presentation for every approved property",

@@ -24,16 +24,16 @@ export function DashboardShell({
         <div className="site-container pb-5 lg:px-6">
           <DashboardNav />
           {profile?.role === "super_admin" ? (
-            <div className="mt-6 rounded-xl bg-forest-deep p-4 text-ivory">
+            <div className="mt-6 rounded-xl bg-forest-deep p-4 text-white">
               <p className="text-[0.65rem] uppercase tracking-wider text-gold-soft">Super Admin</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-ivory/70">
+              <p className="mt-1.5 text-xs leading-relaxed text-white/70">
                 All features are enabled by your administrator role.
               </p>
             </div>
           ) : (
-            <div className="mt-6 rounded-xl bg-forest-deep p-4 text-ivory">
+            <div className="mt-6 rounded-xl bg-forest-deep p-4 text-white">
               <p className="text-[0.65rem] uppercase tracking-wider text-gold-soft">Need more room?</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-ivory/70">
+              <p className="mt-1.5 text-xs leading-relaxed text-white/70">
                 Premium owners can list up to five properties.
               </p>
               <Link href="/pricing" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-gold-soft">
@@ -51,7 +51,7 @@ export function DashboardShell({
       <div className="min-w-0">
         <header className="flex h-20 items-center justify-between border-b border-forest/10 bg-ivory px-5 lg:px-10">
           <div>
-            <p className="text-[0.65rem] uppercase tracking-[0.18em] text-gold">Owner workspace</p>
+            <p className="text-[0.65rem] uppercase tracking-[0.24em] text-gold">Owner workspace</p>
             <p className="mt-1 text-sm font-semibold text-forest-deep">{name}</p>
           </div>
           <Link href="/" className="btn-secondary !py-2">
