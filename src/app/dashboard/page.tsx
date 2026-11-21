@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { getAuthContext } from "@/lib/auth/guards";
 import { getOwnerProperties, getOwnerStats, getOwnerSubscription } from "@/lib/data/owner";
 import { getPlanContextForUser } from "@/lib/plans/limits";
+import { canCreateProperty } from "@/lib/plans/property-limits";
 import { formatDate } from "@/lib/utils";
 
 export default async function DashboardPage() {
@@ -46,6 +47,7 @@ export default async function DashboardPage() {
     getOwnerSubscription(context.user.id),
     getPlanContextForUser(context.user.id),
   ]);
+  const canAddProperty = canCreateProperty(stats.total, plan);
 
   return (
     <>
@@ -54,9 +56,15 @@ export default async function DashboardPage() {
           <p className="eyebrow">Overview</p>
           <h1 className="display-title mt-3 text-4xl">Your properties at a glance.</h1>
         </div>
-        <Link href="/dashboard/properties/new" className="btn-primary">
-          Add a property <ArrowRight size={15} />
-        </Link>
+        {canAddProperty ? (
+          <Link href="/dashboard/properties/new" className="btn-primary">
+            Add a property <ArrowRight size={15} />
+          </Link>
+        ) : (
+          <Link href="/dashboard/subscription" className="btn-primary">
+            Upgrade to add more properties <ArrowRight size={15} />
+          </Link>
+        )}
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

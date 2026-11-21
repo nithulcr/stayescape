@@ -1,9 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthContext } from "@/lib/auth/guards";
 import { getAdminClient } from "@/lib/supabase/admin";
+import { getPlanPriceForBillingCycle } from "@/lib/plans/billing-cycle";
 import { getPlans } from "@/lib/plans/limits";
 import { getRazorpay, razorpayConfigured } from "@/lib/payments/razorpay";
-import type { BillingCycle } from "@/types/database.types";
+import { billingCycleSchema } from "@/lib/validations";
 
 export async function POST(request: NextRequest) {
   const context = await getAuthContext();
@@ -28,7 +29,11 @@ export async function POST(request: NextRequest) {
   }
 
   const body = (await request.json().catch(() => ({}))) as { billingCycle?: string };
-  const billingCycle: BillingCycle = body.billingCycle === "yearly" ? "yearly" : "monthly";
+  const parsedCycle = billingCycleSchema.safeParse(body.billingCycle);
+  if (!parsedCycle.success) {
+    return NextResponse.json({ error: "Choose a valid billing cycle." }, { status: 400 });
+  }
+  const billingCycle = parsedCycle.data;
 
   const plans = await getPlans();
   const premium = plans.find((plan) => plan.code === "premium" && plan.is_active);
@@ -36,7 +41,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Premium plan is not available yet." }, { status: 503 });
   }
 
-  const amount = Math.round(Number(billingCycle === "yearly" ? premium.price_yearly : premium.price_monthly) * 100);
+  const amount = Math.round(getPlanPriceForBillingCycle(premium, billingCycle) * 100);
   if (amount <= 0) {
     return NextResponse.json({ error: "Plan price is not configured." }, { status: 503 });
   }

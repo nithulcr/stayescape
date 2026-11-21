@@ -34,7 +34,7 @@ export function DashboardShell({
             <div className="mt-6 rounded-xl bg-forest-deep p-4 text-white">
               <p className="text-[0.65rem] uppercase tracking-wider text-gold-soft">Need more room?</p>
               <p className="mt-1.5 text-xs leading-relaxed text-white/70">
-                Premium owners can list up to five properties.
+                Premium owners can list up to three properties.
               </p>
               <Link href="/pricing" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-gold-soft">
                 View plans <ArrowUpRight size={12} />

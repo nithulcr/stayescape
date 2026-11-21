@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isKeralaDistrict, keralaStateName } from "@/lib/config";
+import { BILLING_CYCLES } from "@/lib/plans/billing-cycle";
 
 const optionalText = (max: number) => z.string().trim().max(max).optional().or(z.literal(""));
 const optionalUrl = z.string().trim().url().optional().or(z.literal(""));
@@ -143,12 +144,24 @@ export const categorySchema = z.object({
   sort_order: z.coerce.number().int().min(0).max(9999),
 });
 
+export const billingCycleSchema = z.enum(BILLING_CYCLES);
+
 export const planSchema = z.object({
   price_monthly: z.coerce.number().min(0).max(1000000),
+  price_six_month: z.coerce.number().min(0).max(10000000),
   price_yearly: z.coerce.number().min(0).max(10000000),
   max_properties: z.coerce.number().int().min(1).max(100),
   max_images_per_property: z.coerce.number().int().min(1).max(50),
   expired_listing_visibility: z.enum(["keep_visible", "hide"]),
+  features: z.string().trim().max(2000).optional().transform((value) =>
+    value
+      ? value
+          .split("\n")
+          .map((feature) => feature.trim())
+          .filter(Boolean)
+          .slice(0, 20)
+      : [],
+  ),
 });
 
 export const contactMessageSchema = z.object({

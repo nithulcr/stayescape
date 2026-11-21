@@ -3,6 +3,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import Razorpay from "razorpay";
 import { revalidatePath } from "next/cache";
+import { addBillingCycleMonths } from "@/lib/plans/billing-cycle";
 import { getAdminClient } from "@/lib/supabase/admin";
 import type { PaymentRow, PlanRow, SubscriptionRow } from "@/types/database.types";
 
@@ -68,9 +69,7 @@ export async function activatePaidSubscription(input: {
     return { ok: true, message: "Payment already recorded." };
   }
 
-  const durationMonths = payment.billing_cycle === "yearly" ? 12 : 1;
-  const expiresAt = new Date();
-  expiresAt.setMonth(expiresAt.getMonth() + durationMonths);
+  let expiresAt = addBillingCycleMonths(new Date(), payment.billing_cycle);
 
   const { data: current } = await admin
     .from("subscriptions")
@@ -81,8 +80,7 @@ export async function activatePaidSubscription(input: {
 
   const currentSubscription = current as SubscriptionRow | null;
   if (currentSubscription?.expires_at && new Date(currentSubscription.expires_at) > new Date()) {
-    expiresAt.setTime(new Date(currentSubscription.expires_at).getTime());
-    expiresAt.setMonth(expiresAt.getMonth() + durationMonths);
+    expiresAt = addBillingCycleMonths(new Date(currentSubscription.expires_at), payment.billing_cycle);
   }
 
   if (currentSubscription) {

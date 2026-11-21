@@ -27,6 +27,10 @@ export function PlanForm({ plan }: { plan: PlanRow }) {
           <input name="price_monthly" type="number" min={0} defaultValue={plan.price_monthly} className="input-field" />
         </label>
         <label>
+          <span className="field-label">Six-month price (₹)</span>
+          <input name="price_six_month" type="number" min={0} defaultValue={plan.price_six_month} className="input-field" />
+        </label>
+        <label>
           <span className="field-label">Yearly price (₹)</span>
           <input name="price_yearly" type="number" min={0} defaultValue={plan.price_yearly} className="input-field" />
         </label>
@@ -39,6 +43,16 @@ export function PlanForm({ plan }: { plan: PlanRow }) {
           <input name="max_images_per_property" type="number" min={1} defaultValue={plan.max_images_per_property} className="input-field" />
         </label>
       </div>
+      <label>
+        <span className="field-label">Plan features (one per line)</span>
+        <textarea
+          name="features"
+          rows={5}
+          maxLength={2000}
+          defaultValue={plan.features.join("\n")}
+          className="input-field"
+        />
+      </label>
       <label>
         <span className="field-label">Expired listing visibility</span>
         <select name="expired_listing_visibility" defaultValue={plan.expired_listing_visibility} className="input-field">

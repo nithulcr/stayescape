@@ -318,6 +318,79 @@ Statuses are based on static code review.
 | Renewal wording | **FAIL** | Says “Renews / expires on” while `auto_renew: false`. |
 | Admin payment/subscription management | **PASS WITH ISSUES** | Read-only basic tables, no reconciliation. |
 
+### G.1 Owner-based subscription and listing-limit requirement
+
+**Requirement added after the original audit:** subscriptions must apply to the owner account, not individual properties. Free allows 1 property. Premium allows 3 properties and costs ₹499/month, ₹2,499/6 months, or ₹4,999/year. Limits must be enforced server-side against direct API requests, server actions, manipulated frontend requests, and concurrent property creation. On expiry, all property data/images remain, only 1 property remains published/active, the owner chooses which one, and renewal restores access to 3. Super Admin must have unlimited properties, all Premium features, bypassed limits, and manual Premium grant/duration controls.
+
+**Verdict:** the current core model is **owner-based, not property-based**. No owner-to-property subscription conversion migration is required. The subscription source of truth is `public.subscriptions.owner_id` (`supabase/migrations/0001_initial_schema.sql:156-168`, especially `:158`), only one active subscription is allowed per owner (`0001:170-171`), payments are tied to `user_id` rather than property (`0001:173-186`, especially `:175`), entitlement helpers accept owner IDs (`0001:278-331`; final versions in `supabase/migrations/0004_super_admin_entitlement.sql:1-72`), property-limit enforcement counts by owner (`0001:642-675`), and application plan context is loaded by owner (`src/lib/plans/limits.ts:111-155`). Checkout and activation also use the authenticated owner only (`src/app/api/payments/create-order/route.ts:30-67`, `src/lib/payments/razorpay.ts:75-110`).
+
+The only property-scoped artifact is a denormalized plan cache: `public.properties.plan_type` (`0001:107`), overwritten by `sync_property_plan()` (`0001:434-456`; final `0004:101-133`) and bulk-synced by `sync_owner_properties_plan()` (`0001:795-827`; final `0004:135-177`). It is used for visibility (`0004:74-99`) but not for purchase or limit authority.
+
+| Requirement | Current state | Evidence |
+|---|---|---|
+| Subscription attached to owner, not property | **PASS** | `subscriptions.owner_id` at `0001:158`; no `property_id` in `subscriptions` or `payments`; owner-based checkout/activation at `create-order/route.ts:53-67` and `razorpay.ts:75-110`. |
+| Free max 1 property | **PASS WITH ISSUES** | Seed has `max_properties=1` at `supabase/seed.sql:8-11`; app fallback is 1 at `src/lib/plans/limits.ts:21-31`; DB uses owner plan limit at `0001:663`. Admin can change the global limit without snapshot at `src/app/admin/actions.ts:342-389`. |
+| Premium max 3 properties | **FAIL** | Seed and fallback use 5: `supabase/seed.sql:13-16`, `src/lib/plans/limits.ts:24`; UI copy says 5 at `src/components/dashboard/dashboard-shell.tsx:37`. |
+| ₹499/month | **PASS** | `supabase/seed.sql:14`, `src/lib/plans/limits.ts:26`, `src/app/(public)/pricing/page.tsx:57-59`, order amount from DB at `create-order/route.ts:39`. |
+| ₹2,499/6 months | **FAIL** | `billing_cycle` enum has only `monthly`/`yearly` at `0001:10`; plans have only `price_monthly`/`price_yearly` at `0001:78-79`; duration mapping is 1 or 12 months at `src/lib/payments/razorpay.ts:71-73`; checkout exposes only two buttons at `src/components/payments/checkout-button.tsx:46-52`. |
+| ₹4,999/year | **PASS** | `supabase/seed.sql:14`, `src/lib/plans/limits.ts:27`, `src/app/(public)/pricing/page.tsx:61-63`. |
+| Premium applies to owner and all properties | **PASS WITH DRIFT RISK** | Owner-based enforcement at `0001:642-675`, `0004:1-72`, `0004:74-99`, `0004:135-177`; stale `properties.plan_type` can still affect visibility. |
+| Server-side limit enforcement | **PASS WITH ISSUES** | DB trigger `enforce_property_limit_trigger` at `0001:931-933`; function rejects over-limit at `0001:668-671`; service/admin bypass at `0001:652-654`; app server action also checks at `src/lib/properties/save-property.ts:93-117`. Payment APIs still lack active-owner/rate-limit checks at `create-order/route.ts:8-10` and `verify/route.ts:6-8`. |
+| Concurrent property creation protection | **PASS** | `perform 1 from public.profiles p where p.id = new.owner_id for update` at `0001:661` serializes inserts per owner. Image-limit checks lack the same lock/owner fix (`0004:190-198`). |
+| Expiry keeps all properties and images | **PASS** | Expiry only updates subscription status at `0001:599-614` and `src/app/api/cron/expire-subscriptions/route.ts:14-18`; no property deletion path exists. |
+| After expiry only 1 active/published property | **FAIL** | Public queries filter only `status = approved` at `src/lib/data/public.ts:168-177` and `:403-408`; owner query returns all properties at `src/lib/data/owner.ts:33-42`; no active/published flag exists in `src/types/database.types.ts:73-104` or `src/types/index.ts:35-41`. |
+| Owner chooses which property remains active | **FAIL** | No selector/action exists. `is_featured` is only an editorial/admin marker at `src/app/admin/properties/page.tsx:151-156` and `src/components/dashboard/property-form.tsx:325-333`. |
+| Renewal restores access to all 3 | **PARTIAL** | Payment activation sets the owner subscription active again (`razorpay.ts:71-110`) and entitlement recomputes from active/non-expired subscription (`src/lib/plans/limits.ts:120-155`), but reactivation of extra listings has no UI/workflow. |
+| Super Admin unlimited properties and Premium features | **PASS** | `SUPER_ADMIN_UNLIMITED = 1000000` at `src/lib/plans/limits.ts:7` and bypass context at `:61-85`; DB unlimited limit at `0004:37-45`, Premium bypass at `0004:8-15`, forced `plan_type='premium'` at `0004:120-130`, `0004:161-173`. |
+| Super Admin manual Premium grant/duration controls | **FAIL** | Admin subscriptions and payments pages are read-only (`src/app/admin/subscriptions/page.tsx:6-47`, `src/app/admin/payments/page.tsx:6-44`); no subscription grant/extend action exists in `src/app/admin/actions.ts`; duration is hardcoded at `razorpay.ts:71-85`. |
+
+#### Owner-based migration plan
+
+No data-conversion migration is needed for ownership because the schema is already owner-based. Do not add `property_id` to `subscriptions` or `payments`, and do not re-key existing subscriptions. Preserve all existing `subscriptions`, `payments`, `properties`, and `property_images` rows.
+
+1. **Plan catalog migration**
+   - Add a six-month billing cycle, e.g. `half_yearly` or `six_month`, to `public.billing_cycle` (`0001:10`).
+   - Add a six-month price column to `public.plans` beside `price_monthly` and `price_yearly` (`0001:78-79`) and backfill ₹2,499 for Premium.
+   - Update existing Premium plan row: `max_properties = 3`, `price_monthly = 499`, six-month price `= 2499`, `price_yearly = 4999`, and align `features` copy. Do not rely only on `supabase/seed.sql` because it uses `on conflict (code) do nothing` at `seed.sql:17`.
+   - Keep Free `max_properties = 1`. Decide explicitly whether `max_images_per_property` remains 5 and whether `expired_listing_visibility` remains `hide`.
+
+2. **Single source of truth**
+   - Preferred: remove `properties.plan_type` and derive visibility from the owner's active subscription instead of a per-property cache. That removes drift risk from `0001:107`, `0001:434-456`, `0001:795-827`, and `0004:74-99`.
+   - Minimum-risk interim: keep `plan_type` only as a derived display cache, add reconciliation triggers for `profiles.role`, `profiles.account_status`, and subscription expiry, and never use `plan_type` for new entitlement decisions.
+   - Update TypeScript/UI fallbacks to Premium 3 and the new six-month cycle only after the DB migration lands.
+
+3. **Expiry/downgrade policy**
+   - Add an explicit owner-controlled active/published concept separate from moderation `status`; current status values are only `draft`, `pending`, `approved`, `rejected` (`src/types/database.types.ts:3`).
+   - Preserve all property rows, images, contact data, and descriptions. Expiry must not delete or blank data.
+   - On expiry or downgrade, hide/deactivate enough approved properties so only the owner-selected one remains publicly active. Existing over-limit owners need a backfill policy: either default the newest approved property to active and let the owner change it, or mark all as retained-inactive and force selection before any remain public.
+   - Add an audited owner server action to choose the active property, and a Super Admin override.
+   - Renewal restores the owner's ability to have 3 active properties; do not auto-delete or auto-recreate anything.
+
+4. **Backend enforcement hardening**
+   - Keep the DB trigger as final authority (`0001:642-675`) and preserve the per-owner `FOR UPDATE` lock (`0001:661`) for concurrent creation.
+   - Keep server-action checks (`src/lib/properties/save-property.ts:93-117`) as UX/defense-in-depth, but do not rely on frontend state.
+   - Require active owner account status and rate limiting on `/api/payments/create-order`, `/api/payments/verify`, and webhook-related routes.
+   - Fix the storage image-limit owner UUID bug at `0004:190-198` and add equivalent concurrency protection if image limits must be hard caps.
+
+5. **Payment activation and subscription controls**
+   - Replace the non-atomic JavaScript activation sequence (`razorpay.ts:67-122`) with one service-role Postgres RPC that locks the `payments` row, rejects non-pending rows, validates amount/currency against the DB order/plan, upserts the owner subscription by `owner_id`, writes `payments.subscription_id`, and marks payment success in one transaction.
+   - Add webhook event-ID deduplication and handle `payment.failed`, refunds, duplicate events, and wrong amounts.
+   - Add audited Super Admin RPC/UI actions for grant Premium, set start date, extend duration, revoke, and reconcile active properties. Do not rely on direct PostgREST writes to `subscriptions`.
+   - Keep Super Admin bypass via `is_admin()`/`super_admin`, but define whether it should coexist with an explicit subscription row.
+
+6. **RLS/security**
+   - Revoke anon access to `has_active_premium(uuid)` (`0001:1346`) and preferably `is_service_role()`/`is_admin()` from anon (`0001:1342-1343`).
+   - Restrict direct `subscriptions`/`payments` writes to service role only and route manual changes through audited app code; current admin `for all` policies at `0001:1200-1205` and `0001:1213-1218` are too broad.
+   - Snapshot effective limits/duration on each subscription or audit plan changes so global admin edits do not retroactively change paid entitlements (`0004:52-58`, `src/app/admin/actions.ts:342-389`).
+
+7. **UI/UX plan**
+   - Update public pricing and dashboard fallback copy to Premium 3 properties and add the ₹2,499/6-month option.
+   - Disable “Add property” at quota with an upgrade CTA while keeping server enforcement.
+   - Show total properties separately from active/published properties.
+   - Add expiry/downgrade banners: all data retained, only one active property, choose which remains active, renew to restore 3.
+   - Stop trusting `?payment=success` (`src/app/dashboard/subscription/page.tsx:14`, `:32-36`) and derive status from the database.
+   - Add Super Admin controls on `/admin/subscriptions` and owner detail pages for manual grant/extension/revocation.
+
 ## H. Legal/security/support
 
 | Feature | Status | Key evidence |
@@ -601,7 +674,7 @@ Statuses are based on static code review.
    - Bind review-report identity and rotate poisoned tokens if deployed.
    - Make storage private or separate approved/unapproved assets.
 
-3. **Payments**
+3. **Payments and owner-based subscriptions**
    - Add amount/currency validation and idempotency.
    - Make activation transactional.
    - Handle failed/refunded payments.
@@ -609,6 +682,9 @@ Statuses are based on static code review.
    - Add payment rate limits.
    - Configure `CRON_SECRET` and a real scheduler.
    - Derive success banner from DB state.
+   - Keep subscriptions owner-based; change Premium from 5 to 3 properties and add the ₹2,499/6-month cycle.
+   - Preserve all properties/images on expiry, enforce one owner-selected active property, and restore 3 active properties on renewal.
+   - Add audited Super Admin grant/extend/revoke controls and unlimited-property bypass.
 
 4. **Database consistency**
    - Include `state`/`district` in approval reset.
@@ -631,4 +707,4 @@ Statuses are based on static code review.
 
 ---
 
-**Final note:** no application files were changed during this audit. The only created file is this report.
+**Final note:** no application files were changed during this audit. The payment architecture addendum was added to this report only; implementation has not been started.

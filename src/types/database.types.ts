@@ -2,7 +2,7 @@ export type UserRole = "user" | "owner" | "admin" | "super_admin";
 export type AccountStatus = "active" | "suspended";
 export type PropertyStatus = "draft" | "pending" | "approved" | "rejected";
 export type PlanCode = "free" | "premium";
-export type BillingCycle = "monthly" | "yearly";
+export type BillingCycle = "monthly" | "six_month" | "yearly";
 export type SubscriptionStatus = "active" | "expired" | "cancelled";
 export type PaymentStatus = "pending" | "success" | "failed" | "refunded";
 export type EnquiryStatus = "new" | "read" | "replied" | "contacted" | "pending" | "completed";
@@ -61,6 +61,7 @@ export type PlanRow = Timestamps & {
   name: string;
   description: string | null;
   price_monthly: number;
+  price_six_month: number;
   price_yearly: number;
   max_properties: number;
   max_images_per_property: number;

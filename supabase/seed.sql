@@ -1,18 +1,18 @@
 -- STAYSCAPE initial seed data.
 -- Kerala destinations only; no sample properties are seeded.
 
-insert into public.plans (code, name, description, price_monthly, price_yearly,
+insert into public.plans (code, name, description, price_monthly, price_six_month, price_yearly,
   max_properties, max_images_per_property, expired_listing_visibility, is_active, sort_order, features)
 values
   (
     'free', 'Free', 'List a single property and receive enquiries from travellers.',
-    0, 0, 1, 1, 'keep_visible', true, 1,
+    0, 0, 0, 1, 1, 'keep_visible', true, 1,
     array['1 property listing', '1 photo per property', 'Enquiry inbox', 'Admin-reviewed listing']
   ),
   (
     'premium', 'Premium', 'Showcase your properties with richer details and more photos.',
-    499, 4999, 5, 5, 'hide', true, 2,
-    array['5 property listings', '5 photos per property', 'Rich details and amenities', 'Priority placement', 'Direct contact links']
+    499, 2499, 4999, 3, 5, 'hide', true, 2,
+    array['3 property listings', '5 photos per property', 'Rich details and amenities', 'Priority placement', 'Direct contact links']
   )
 on conflict (code) do nothing;
 

@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { requireOwner } from "@/lib/auth/guards";
 import { getOwnerProperties } from "@/lib/data/owner";
 import { getPlanContextForUser } from "@/lib/plans/limits";
+import { canCreateProperty } from "@/lib/plans/property-limits";
 import { fallbackPropertyImage } from "@/lib/media";
 import { formatINR } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ export default async function OwnerPropertiesPage() {
     getOwnerProperties(user.id),
     getPlanContextForUser(user.id),
   ]);
+  const canAddProperty = canCreateProperty(properties.length, plan);
 
   return (
     <>
@@ -28,8 +30,19 @@ export default async function OwnerPropertiesPage() {
               ? `${properties.length} properties · ${plan.limits.planName}`
               : `${properties.length} of ${plan.limits.maxProperties} properties used on your ${plan.limits.planName} plan.`}
           </p>
+          {!canAddProperty && (
+            <p className="mt-2 text-xs text-gold">
+              You have reached your plan limit. Upgrade to add more properties.
+            </p>
+          )}
         </div>
-        <Link href="/dashboard/properties/new" className="btn-primary">Add property</Link>
+        {canAddProperty ? (
+          <Link href="/dashboard/properties/new" className="btn-primary">Add property</Link>
+        ) : (
+          <Link href="/dashboard/subscription" className="btn-primary">
+            Upgrade to add more properties
+          </Link>
+        )}
       </div>
 
       {properties.length ? (

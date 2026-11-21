@@ -3,6 +3,7 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { getPlanContextForUser } from "@/lib/plans/limits";
+import { canCreateProperty } from "@/lib/plans/property-limits";
 import { getServerClient } from "@/lib/supabase/server";
 import { parseOptional, propertySchema, schemaFieldErrors } from "@/lib/validations";
 import { uniqueSlug } from "@/lib/utils";
@@ -90,8 +91,6 @@ export async function persistProperty({
     if (!owner) return { ok: false, message: "The selected property owner does not exist." };
   }
 
-  const plan = await getPlanContextForUser(ownerId);
-
   let existing: { id: string; owner_id: string; slug: string } | null = null;
   if (propertyId) {
     let query = supabase.from("properties").select("id,owner_id,slug").eq("id", propertyId);
@@ -102,12 +101,19 @@ export async function persistProperty({
     if (adminMode) ownerId = parseOptional(formData.get("ownerId")) ?? data.owner_id;
   }
 
-  if (!existing && !plan.isUnlimited) {
-    const { count } = await supabase
-      .from("properties")
-      .select("id", { count: "exact", head: true })
-      .eq("owner_id", ownerId);
-    if ((count ?? 0) >= plan.limits.maxProperties) {
+  const plan = await getPlanContextForUser(ownerId);
+  const isNewListing = !existing || existing.owner_id !== ownerId;
+
+  if (isNewListing) {
+    let currentPropertyCount = 0;
+    if (!plan.isUnlimited) {
+      const { count } = await supabase
+        .from("properties")
+        .select("id", { count: "exact", head: true })
+        .eq("owner_id", ownerId);
+      currentPropertyCount = count ?? 0;
+    }
+    if (!canCreateProperty(currentPropertyCount, plan)) {
       const noun = plan.limits.maxProperties === 1 ? "property" : "properties";
       return {
         ok: false,

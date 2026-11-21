@@ -1,6 +1,7 @@
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusPill } from "@/components/ui/status-pill";
 import { getAllAdminPayments } from "@/lib/data/admin";
+import { getBillingCycleLabel } from "@/lib/plans/billing-cycle";
 import { formatDate, formatINR } from "@/lib/utils";
 
 export default async function AdminPaymentsPage() {
@@ -28,7 +29,7 @@ export default async function AdminPaymentsPage() {
                 <tr key={payment.id}>
                   <td className="px-5 py-4 font-medium text-forest-deep">{formatINR(payment.amount / 100)}</td>
                   <td className="px-5 py-4 text-xs text-muted">{payment.razorpay_order_id}</td>
-                  <td className="px-5 py-4 capitalize">{payment.billing_cycle}</td>
+                  <td className="px-5 py-4">{getBillingCycleLabel(payment.billing_cycle)}</td>
                   <td className="px-5 py-4"><StatusPill status={payment.status} /></td>
                   <td className="px-5 py-4 text-xs text-muted">{formatDate(payment.created_at)}</td>
                 </tr>

@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Camera, Mail, MessageCircle } from "lucide-react";
 import Image from "next/image";
-import { brand } from "@/lib/config";
-import { getDestinations } from "@/lib/data/public";
+import { brand, districtOptions } from "@/lib/config";
 
 const linkGroups = [
   {
@@ -46,9 +45,7 @@ const linkGroups = [
   },
 ];
 
-export async function SiteFooter() {
-  const destinations = await getDestinations();
-
+export function SiteFooter() {
   return (
     <footer className="bg-forest-deep text-white">
       <div className="site-container grid gap-12 pt-14 lg:pt-20 pb-8 lg:pb-10 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] ">
@@ -140,24 +137,18 @@ export async function SiteFooter() {
         </div>
 
         <div>
-          <h3 className="mb-4 text-lg  text-gold">Popular destinations</h3>
-          {destinations.length ? (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm text-white/70">
-              {destinations.map((destination) => (
-                <Link
-                  key={destination.id}
-                  href={`/destinations/${destination.slug}`}
-                  className="inline-flex items-center gap-1 hover:text-white"
-                >
-                  {destination.name} <ArrowUpRight size={11} />
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-white/50">
-              Destinations appear here once connected.
-            </p>
-          )}
+          <h3 className="mb-4 text-lg  text-gold">Popular districts</h3>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm text-white/70">
+            {districtOptions.map((district) => (
+              <Link
+                key={district.slug}
+                href={`/properties?district=${district.slug}`}
+                className="inline-flex items-center gap-1 hover:text-white"
+              >
+                {district.name} <ArrowUpRight size={11} />
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
       <div className="bg-white/3">

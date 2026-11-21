@@ -3,32 +3,17 @@ import "server-only";
 import { getServerClient } from "@/lib/supabase/server";
 import type { PlanRow, SubscriptionRow } from "@/types/database.types";
 import type { PlanContext, PlanLimits } from "@/types";
+import {
+  FALLBACK_FREE_LIMITS,
+  FALLBACK_PREMIUM_LIMITS,
+  SUPER_ADMIN_UNLIMITED,
+} from "./plan-defaults";
 
-export const SUPER_ADMIN_UNLIMITED = 1_000_000;
-
-export const FALLBACK_FREE_LIMITS: PlanLimits = {
-  planCode: "free",
-  planName: "Free",
-  maxProperties: 1,
-  maxImagesPerProperty: 1,
-  priceMonthly: 0,
-  priceYearly: 0,
-  expiredListingVisibility: "keep_visible",
-  features: ["1 property", "1 photo", "Basic listing details"],
-  isActive: true,
-};
-
-export const FALLBACK_PREMIUM_LIMITS: PlanLimits = {
-  planCode: "premium",
-  planName: "Premium",
-  maxProperties: 5,
-  maxImagesPerProperty: 5,
-  priceMonthly: 499,
-  priceYearly: 4999,
-  expiredListingVisibility: "keep_visible",
-  features: ["5 properties", "5 photos per property", "Full listing details"],
-  isActive: true,
-};
+export {
+  FALLBACK_FREE_LIMITS,
+  FALLBACK_PREMIUM_LIMITS,
+  SUPER_ADMIN_UNLIMITED,
+} from "./plan-defaults";
 
 export function toPlanLimits(plan: PlanRow | null, fallback: PlanLimits): PlanLimits {
   if (!plan) return fallback;
@@ -38,6 +23,7 @@ export function toPlanLimits(plan: PlanRow | null, fallback: PlanLimits): PlanLi
     maxProperties: plan.max_properties,
     maxImagesPerProperty: plan.max_images_per_property,
     priceMonthly: Number(plan.price_monthly),
+    priceSixMonth: Number(plan.price_six_month),
     priceYearly: Number(plan.price_yearly),
     expiredListingVisibility: plan.expired_listing_visibility,
     features: Array.isArray(plan.features) ? plan.features.map(String) : [],

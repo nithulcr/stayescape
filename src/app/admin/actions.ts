@@ -351,10 +351,12 @@ export async function savePlanAction(
 
   const parsed = planSchema.safeParse({
     price_monthly: formData.get("price_monthly"),
+    price_six_month: formData.get("price_six_month"),
     price_yearly: formData.get("price_yearly"),
     max_properties: formData.get("max_properties"),
     max_images_per_property: formData.get("max_images_per_property"),
     expired_listing_visibility: formData.get("expired_listing_visibility"),
+    features: parseOptional(formData.get("features")) ?? "",
   });
   if (!parsed.success) {
     return {
@@ -368,10 +370,12 @@ export async function savePlanAction(
     .from("plans")
     .update({
       price_monthly: parsed.data.price_monthly,
+      price_six_month: parsed.data.price_six_month,
       price_yearly: parsed.data.price_yearly,
       max_properties: parsed.data.max_properties,
       max_images_per_property: parsed.data.max_images_per_property,
       expired_listing_visibility: parsed.data.expired_listing_visibility,
+      features: parsed.data.features,
     })
     .eq("id", id);
 

@@ -1,3 +1,5 @@
+import type { BillingCycle } from "./database.types";
+
 export type PropertyCardImage = {
   id: string;
   public_url: string;
@@ -82,6 +84,7 @@ export type PlanLimits = {
   maxProperties: number;
   maxImagesPerProperty: number;
   priceMonthly: number;
+  priceSixMonth: number;
   priceYearly: number;
   expiredListingVisibility: "keep_visible" | "hide";
   features: string[];
@@ -95,7 +98,7 @@ export type PlanContext = {
   isPremium: boolean;
   isExpired: boolean;
   expiresAt: string | null;
-  billingCycle: "monthly" | "yearly" | null;
+  billingCycle: BillingCycle | null;
   subscriptionId: string | null;
   entitlement: EntitlementSource;
   isUnlimited: boolean;

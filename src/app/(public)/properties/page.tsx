@@ -45,7 +45,7 @@ export default async function PropertiesPage({
     page: Number(value(params, "page")) || 1,
   };
 
-  const pageSize = 9;
+  const pageSize = 15;
   const [destinations, categories, amenities, result] = await Promise.all([
     getDestinations(),
     getCategories(),

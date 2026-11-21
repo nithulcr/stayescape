@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CreditCard, Loader2 } from "lucide-react";
+import { getBillingCycleLabel } from "@/lib/plans/billing-cycle";
+import type { BillingCycle } from "@/types/database.types";
 
 type OrderResponse = {
   error?: string;
@@ -11,7 +13,7 @@ type OrderResponse = {
   currency?: string;
   keyId?: string;
   planName?: string;
-  billingCycle?: "monthly" | "yearly";
+  billingCycle?: BillingCycle;
 };
 
 type RazorpayResponse = {
@@ -47,7 +49,7 @@ export function CheckoutButton({
   billingCycle,
   label,
 }: {
-  billingCycle: "monthly" | "yearly";
+  billingCycle: BillingCycle;
   label: string;
 }) {
   const router = useRouter();
@@ -76,7 +78,7 @@ export function CheckoutButton({
         amount: order.amount,
         currency: order.currency ?? "INR",
         name: "STAYSCAPE",
-        description: `${order.planName ?? "Premium"} (${billingCycle})`,
+        description: `${order.planName ?? "Premium"} (${getBillingCycleLabel(billingCycle)})`,
         order_id: order.orderId,
         theme: { color: "#123D32" },
         handler: async (payment: RazorpayResponse) => {

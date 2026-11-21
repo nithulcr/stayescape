@@ -3,7 +3,8 @@ import { CheckoutButton } from "@/components/payments/checkout-button";
 import { StatusPill } from "@/components/ui/status-pill";
 import { requireOwner } from "@/lib/auth/guards";
 import { getOwnerPayments, getOwnerSubscription } from "@/lib/data/owner";
-import { getPlanContextForUser } from "@/lib/plans/limits";
+import { BILLING_CYCLES, getBillingCycleLabel, getPlanPriceForBillingCycle } from "@/lib/plans/billing-cycle";
+import { getPlanContextForUser, getPlanLimits } from "@/lib/plans/limits";
 import { formatDate, formatINR } from "@/lib/utils";
 
 export default async function SubscriptionPage({
@@ -13,10 +14,11 @@ export default async function SubscriptionPage({
 }) {
   const { payment } = await searchParams;
   const { user } = await requireOwner();
-  const [plan, subscription, payments] = await Promise.all([
+  const [plan, subscription, payments, planLimits] = await Promise.all([
     getPlanContextForUser(user.id),
     getOwnerSubscription(user.id),
     getOwnerPayments(user.id),
+    getPlanLimits(),
   ]);
 
   return (
@@ -55,12 +57,17 @@ export default async function SubscriptionPage({
           )}
         </div>
         {subscription?.expires_at && plan.entitlement !== "admin_bypass" && (
-          <p className="mt-4 text-sm text-muted">Renews / expires on {formatDate(subscription.expires_at)}</p>
+          <p className="mt-4 text-sm text-muted">Valid until {formatDate(subscription.expires_at)}</p>
         )}
         {!plan.isPremium && (
-          <div className="mt-7 grid gap-3 sm:grid-cols-2">
-            <CheckoutButton billingCycle="monthly" label="Upgrade monthly" />
-            <CheckoutButton billingCycle="yearly" label="Upgrade yearly" />
+          <div className="mt-7 grid gap-3 sm:grid-cols-3">
+            {BILLING_CYCLES.map((billingCycle) => (
+              <CheckoutButton
+                key={billingCycle}
+                billingCycle={billingCycle}
+                label={`${getBillingCycleLabel(billingCycle)} · ${formatINR(getPlanPriceForBillingCycle(planLimits.premium, billingCycle))}`}
+              />
+            ))}
           </div>
         )}
       </section>
@@ -77,7 +84,7 @@ export default async function SubscriptionPage({
                 <div>
                   <p className="font-medium text-forest-deep">{formatINR(item.amount / 100)}</p>
                   <p className="mt-0.5 text-xs text-muted">
-                    {item.billing_cycle} · {formatDate(item.created_at)}
+                    {getBillingCycleLabel(item.billing_cycle)} · {formatDate(item.created_at)}
                   </p>
                 </div>
                 <StatusPill status={item.status} />

@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, Crown } from "lucide-react";
 import { CheckoutButton } from "@/components/payments/checkout-button";
+import {
+  BILLING_CYCLES,
+  getBillingCycleLabel,
+  getBillingCycleSavings,
+  getBillingDurationLabel,
+  getPlanPriceForBillingCycle,
+} from "@/lib/plans/billing-cycle";
 import { FALLBACK_FREE_LIMITS, FALLBACK_PREMIUM_LIMITS, getPlans, toPlanLimits } from "@/lib/plans/limits";
 import { formatINR } from "@/lib/utils";
 
@@ -52,15 +59,30 @@ export default async function PricingPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold-soft">Growth</p>
           <h2 className="mt-2 font-serif text-3xl">{premium.planName}</h2>
           <p className="mt-2 text-sm text-white/65">For hosts with multiple properties and bigger ambitions.</p>
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <div>
-              <p className="font-serif text-3xl">{formatINR(premium.priceMonthly)}</p>
-              <p className="mt-1 text-xs text-white/55">per month</p>
-            </div>
-            <div>
-              <p className="font-serif text-3xl">{formatINR(premium.priceYearly)}</p>
-              <p className="mt-1 text-xs text-white/55">per year</p>
-            </div>
+          <p className="mt-4 text-sm text-gold-soft">Up to {premium.maxProperties} property listings per owner.</p>
+          <p className="mt-1 text-xs text-white/55">
+            Premium is applied to your owner account and covers all of your properties.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            {BILLING_CYCLES.map((billingCycle) => {
+              const price = getPlanPriceForBillingCycle(premium, billingCycle);
+              const savings = getBillingCycleSavings(premium, billingCycle);
+              return (
+                <div key={billingCycle} className="rounded-lg border border-white/15 bg-white/5 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-gold-soft">
+                    {getBillingCycleLabel(billingCycle)}
+                  </p>
+                  <p className="mt-2 font-serif text-2xl">{formatINR(price)}</p>
+                  <p className="mt-1 text-xs text-white/55">{getBillingDurationLabel(billingCycle)}</p>
+                  {savings > 0 && (
+                    <p className="mt-1 text-xs text-gold-soft">Save {formatINR(savings)} vs monthly</p>
+                  )}
+                  <div className="mt-3 [&_button]:!border-ivory/30 [&_button]:!bg-transparent [&_button]:!text-white">
+                    <CheckoutButton billingCycle={billingCycle} label={`Choose ${getBillingCycleLabel(billingCycle)}`} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
           <ul className="mt-7 flex-1 space-y-3 text-sm text-white/80">
             {premium.features.map((feature) => (
@@ -69,12 +91,6 @@ export default async function PricingPage() {
               </li>
             ))}
           </ul>
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            <div className="[&_button]:!border-ivory/30 [&_button]:!bg-transparent [&_button]:!text-white">
-              <CheckoutButton billingCycle="monthly" label="Monthly" />
-            </div>
-            <CheckoutButton billingCycle="yearly" label="Yearly" />
-          </div>
         </div>
       </div>
 

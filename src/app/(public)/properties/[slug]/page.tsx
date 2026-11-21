@@ -60,11 +60,12 @@ export default async function PropertyPage({
 
   const similar = await getSimilarProperties(property, 3);
   const canReview = !auth?.user.id || auth.user.id !== property.owner_id;
+  const callNumber = property.contact_phone ?? property.owner_phone;
   const whatsapp = whatsappLink(
-    property.owner_whatsapp ?? property.owner_phone,
+    property.whatsapp_number ?? property.owner_whatsapp ?? callNumber,
     `Hi, I'm interested in ${property.name}. Could you please share availability and more details?`,
   );
-  const callOwner = telephoneLink(property.owner_phone);
+  const callOwner = telephoneLink(callNumber);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "LodgingBusiness",
@@ -232,7 +233,8 @@ export default async function PropertyPage({
                 )}
               </div>
             </div>
-
+           
+            
             <EnquiryForm
               propertyId={property.id}
               propertyName={property.name}

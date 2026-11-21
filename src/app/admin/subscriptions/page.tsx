@@ -1,6 +1,7 @@
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusPill } from "@/components/ui/status-pill";
 import { getAllSubscriptions } from "@/lib/data/admin";
+import { getBillingCycleLabel } from "@/lib/plans/billing-cycle";
 import { formatDate } from "@/lib/utils";
 
 export default async function AdminSubscriptionsPage() {
@@ -31,7 +32,7 @@ export default async function AdminSubscriptionsPage() {
                     <p className="mt-0.5 text-xs text-muted">{subscription.owner_email}</p>
                   </td>
                   <td className="px-5 py-4">{subscription.plan_name}</td>
-                  <td className="px-5 py-4 capitalize">{subscription.billing_cycle}</td>
+                  <td className="px-5 py-4">{getBillingCycleLabel(subscription.billing_cycle)}</td>
                   <td className="px-5 py-4"><StatusPill status={subscription.status} /></td>
                   <td className="px-5 py-4 text-xs text-muted">{formatDate(subscription.expires_at)}</td>
                 </tr>
