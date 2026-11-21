@@ -52,7 +52,7 @@ export default async function OwnerPropertiesPage() {
                   {property.is_featured && <StatusPill status="premium">Featured</StatusPill>}
                 </div>
                 <p className="mt-1 text-xs text-muted">
-                  {[property.city, property.state].filter(Boolean).join(", ") || "Location pending"}
+                  {[property.district, property.city, property.state].filter(Boolean).join(", ") || "Location pending"}
                   {property.price_per_night ? ` · ${formatINR(property.price_per_night)} / night` : ""}
                 </p>
                 <p className="mt-2 line-clamp-2 text-sm text-charcoal/70">

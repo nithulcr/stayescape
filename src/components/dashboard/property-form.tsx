@@ -5,6 +5,7 @@ import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
 import { savePropertyAction } from "@/app/dashboard/properties/actions";
+import { districtOptions, keralaStateName } from "@/lib/config";
 import type { ActionResult } from "@/types";
 import type {
   AmenityRow,
@@ -17,6 +18,8 @@ import type {
 type PropertyFormValues = {
   name: string;
   short_description: string;
+  state: string;
+  district: string;
   destination_id: string;
   category_id: string;
   description: string;
@@ -42,6 +45,8 @@ function initialValues(
   return {
     name: property?.name ?? "",
     short_description: property?.short_description ?? "",
+    state: property?.state ?? keralaStateName,
+    district: property?.district ?? "",
     destination_id: property?.destination_id ?? "",
     category_id: property?.category_id ?? "",
     description: property?.description ?? "",
@@ -72,6 +77,8 @@ function ErrorText({ messages }: { messages?: string[] }) {
 const submittedFields: Record<Exclude<keyof PropertyFormValues, "amenities">, string> = {
   name: "property_name",
   short_description: "property_short_description",
+  state: "property_state",
+  district: "property_district",
   destination_id: "property_destination_id",
   category_id: "property_category_id",
   description: "property_description",
@@ -126,6 +133,7 @@ export function PropertyForm({
   const [ownerId, setOwnerId] = useState(selectedOwnerId);
   const [status, setStatus] = useState<PropertyStatus>(property?.status ?? "pending");
   const [featured, setFeatured] = useState(property?.is_featured ?? false);
+  const isKerala = values.state.trim().toLowerCase() === keralaStateName.toLowerCase();
 
   useLayoutEffect(() => {
     const form = formRef.current;
@@ -219,6 +227,33 @@ export function PropertyForm({
               className="input-field"
             />
             <ErrorText messages={state.fieldErrors?.short_description} />
+          </label>
+          <label>
+            <span className="field-label">State</span>
+            <input
+              data-field="state"
+              required
+              value={values.state}
+              onChange={(event) => setValue("state", event.target.value)}
+              className="input-field"
+            />
+            <ErrorText messages={state.fieldErrors?.state} />
+          </label>
+          <label>
+            <span className="field-label">District</span>
+            <select
+              data-field="district"
+              required={isKerala}
+              value={values.district}
+              onChange={(event) => setValue("district", event.target.value)}
+              className="input-field"
+            >
+              <option value="">{isKerala ? "Choose a district" : "Not applicable"}</option>
+              {districtOptions.map((district) => (
+                <option key={district.slug} value={district.name}>{district.name}</option>
+              ))}
+            </select>
+            <ErrorText messages={state.fieldErrors?.district} />
           </label>
           <label>
             <span className="field-label">Destination</span>

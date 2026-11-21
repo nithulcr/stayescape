@@ -39,6 +39,9 @@ export default async function AdminPropertyPage({ params }: { params: Promise<{ 
           <p className="eyebrow">Edit property</p>
           <h1 className="display-title mt-3 text-4xl">{property.name}</h1>
         </div>
+        <p className="mt-2 text-xs text-muted">
+          {property.district ? `${property.district}, ${property.state}` : property.state}
+        </p>
         <div className="flex flex-wrap items-center gap-3">
           <StatusPill status={property.status} />
           <Link href={`/properties/${property.slug}`} target="_blank" className="btn-secondary !py-2">

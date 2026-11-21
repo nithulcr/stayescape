@@ -35,9 +35,11 @@ export default async function PropertiesPage({
   const filters: PropertyFilters = {
     q: value(params, "q"),
     destination: value(params, "destination"),
+    district: value(params, "district"),
     category: value(params, "category"),
     minPrice: Number(value(params, "minPrice")) || undefined,
     maxPrice: Number(value(params, "maxPrice")) || undefined,
+    minRating: Number(value(params, "minRating")) || undefined,
     amenity,
     sort: value(params, "sort") as PropertyFilters["sort"],
     page: Number(value(params, "page")) || 1,
@@ -59,7 +61,7 @@ export default async function PropertiesPage({
         <p className="eyebrow">Explore</p>
         <h1 className="display-title mt-3 text-[clamp(2.2rem,5vw,3.5rem)]">Find a stay you love.</h1>
         <p className="mt-4 text-sm leading-relaxed text-muted md:text-base">
-          Every property here has been reviewed by our team. Filter by destination, stay type, amenities and price.
+          Every property here has been reviewed by our team. Filter by district, destination, stay type, amenities, price and rating.
         </p>
       </div>
 

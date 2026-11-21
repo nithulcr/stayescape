@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getServerClient } from "@/lib/supabase/server";
+import { districtOptions, isKeralaDistrict, keralaStateName, resolveDistrict } from "@/lib/config";
 import { fallbackPropertyImage } from "@/lib/media";
 import { slugify } from "@/lib/utils";
 import type {
@@ -13,6 +14,7 @@ import type {
 } from "@/types/database.types";
 import type {
   PropertyAmenity,
+  DistrictSummary,
   PropertyCardImage,
   PropertyDetail,
   PropertyFilters,
@@ -145,7 +147,8 @@ function toListItem(
     plan_type: property.plan_type,
     price_per_night: property.price_per_night ? Number(property.price_per_night) : null,
     city: destination?.name ?? null,
-    state: destination?.state ?? null,
+    state: property.state || destination?.state || null,
+    district: property.district ?? null,
     category_name: category?.name ?? null,
     category_slug: category?.slug ?? null,
     cover_image: cover?.public_url || fallbackPropertyImage,
@@ -184,9 +187,9 @@ export async function getPublishedProperties(
             item.state.toLowerCase().includes(needle),
         )
         .map((item) => item.id);
-      query = destinationIds.length
-        ? query.or(`name.ilike.*${search}*,destination_id.in.(${destinationIds.join(",")})`)
-        : query.ilike("name", `%${search}%`);
+      const conditions = [`name.ilike.*${search}*`, `district.ilike.*${search}*`];
+      if (destinationIds.length) conditions.push(`destination_id.in.(${destinationIds.join(",")})`);
+      query = query.or(conditions.join(","));
     }
 
     if (filters.destination) {
@@ -199,6 +202,12 @@ export async function getPublishedProperties(
       );
       if (!destination) return { items: [], total: 0 };
       query = query.eq("destination_id", destination.id);
+    }
+
+    if (filters.district) {
+      const district = resolveDistrict(filters.district);
+      if (!district) return { items: [], total: 0 };
+      query = query.eq("district", district.name);
     }
 
     if (filters.category) {
@@ -224,6 +233,21 @@ export async function getPublishedProperties(
       const matchingIds = [
         ...new Set((amenityLinks ?? []).map((link) => link.property_id)),
       ];
+      if (!matchingIds.length) return { items: [], total: 0 };
+      query = query.in("id", matchingIds);
+    }
+
+    const minRating = filters.minRating;
+    if (typeof minRating === "number" && Number.isFinite(minRating) && minRating > 0) {
+      const { data: ratingRows } = await supabase
+        .from("reviews")
+        .select("property_id,rating")
+        .eq("status", "approved");
+      const matchingIds = summarizeStats(
+        (ratingRows ?? []) as { property_id: string; rating: number }[],
+      )
+        .filter((stat) => stat.average >= minRating)
+        .map((stat) => stat.property_id);
       if (!matchingIds.length) return { items: [], total: 0 };
       query = query.in("id", matchingIds);
     }
@@ -447,11 +471,15 @@ export async function getPropertyBySlug(
 }
 
 export async function getSimilarProperties(
-  property: Pick<PropertyDetail, "id" | "city" | "category_slug">,
+  property: Pick<PropertyDetail, "id" | "city" | "district" | "category_slug">,
   limit = 3,
 ): Promise<PropertyListItem[]> {
   const { items } = await getPublishedProperties(
-    { destination: property.city ? cityToSlug(property.city) : undefined, page: 1 },
+    {
+      destination: property.city ? cityToSlug(property.city) : undefined,
+      district: property.district ? cityToSlug(property.district) : undefined,
+      page: 1,
+    },
     12,
   );
   return items.filter((item) => item.id !== property.id).slice(0, limit);
@@ -500,4 +528,42 @@ export async function getAllAmenities(): Promise<AmenityRow[]> {
   if (!supabase) return [];
   const { data } = await supabase.from("amenities").select("*").order("name");
   return (data ?? []) as AmenityRow[];
+}
+
+export async function getDistrictSummaries(): Promise<DistrictSummary[]> {
+  const supabase = await getServerClient();
+  if (!supabase) return [];
+
+  const [properties, destinations] = await Promise.all([
+    supabase
+      .from("properties")
+      .select("district,destination_id")
+      .eq("status", "approved"),
+    getDestinations(),
+  ]);
+
+  const grouped = new Map<string, { count: number; destinationId: string | null }>();
+  for (const property of (properties.data ?? []) as Pick<PropertyRow, "district" | "destination_id">[]) {
+    if (!isKeralaDistrict(property.district)) continue;
+    const current = grouped.get(property.district) ?? { count: 0, destinationId: null };
+    grouped.set(property.district, {
+      count: current.count + 1,
+      destinationId: current.destinationId ?? property.destination_id,
+    });
+  }
+
+  const destinationMap = new Map(destinations.map((destination) => [destination.id, destination]));
+  return districtOptions
+    .filter((option) => grouped.has(option.name))
+    .map((option) => {
+      const group = grouped.get(option.name)!;
+      const destination = group.destinationId ? destinationMap.get(group.destinationId) : null;
+      return {
+        name: option.name,
+        slug: option.slug,
+        state: keralaStateName,
+        image: destination?.image_url || fallbackPropertyImage,
+        propertyCount: group.count,
+      };
+    });
 }

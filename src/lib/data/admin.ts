@@ -213,6 +213,7 @@ export async function getAdminUserById(id: string) {
 export type AdminPropertyFilters = {
   status?: string;
   q?: string;
+  district?: string;
 };
 
 export async function getAllProperties(filters: AdminPropertyFilters = {}) {
@@ -221,8 +222,9 @@ export async function getAllProperties(filters: AdminPropertyFilters = {}) {
 
   let query = supabase.from("properties").select("*").order("created_at", { ascending: false });
   if (filters.status) query = query.eq("status", filters.status as PropertyRow["status"]);
+  if (filters.district) query = query.eq("district", filters.district);
   const term = filters.q?.trim();
-  if (term) query = query.ilike("name", `%${term}%`);
+  if (term) query = query.or(`name.ilike.*${term}*,district.ilike.*${term}*`);
 
   const [properties, profiles, destinations, categories, images] = await Promise.all([
     query,

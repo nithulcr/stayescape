@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isKeralaDistrict, keralaStateName } from "@/lib/config";
 
 const optionalText = (max: number) => z.string().trim().max(max).optional().or(z.literal(""));
 const optionalUrl = z.string().trim().url().optional().or(z.literal(""));
@@ -85,6 +86,8 @@ export const reviewUpdateSchema = reviewSchema.extend({
 const basePropertySchema = z.object({
   name: z.string().trim().min(3, "Property name is too short").max(120),
   short_description: z.string().trim().min(20, "Add a short description of at least 20 characters").max(300),
+  state: z.string().trim().min(2, "Enter a state").max(100),
+  district: z.string().trim().optional().or(z.literal("")),
   destination_id: z.string().uuid("Choose a destination"),
   category_id: z.string().uuid("Choose a property type"),
 });
@@ -106,7 +109,17 @@ const premiumPropertySchema = basePropertySchema.extend({
   highlights: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
-export const propertySchema = premiumPropertySchema;
+export const propertySchema = premiumPropertySchema
+  .refine(
+    (values) =>
+      values.state.trim().toLowerCase() !== keralaStateName.toLowerCase() ||
+      isKeralaDistrict(values.district),
+    { message: "Choose a district", path: ["district"] },
+  )
+  .refine(
+    (values) => !values.district || isKeralaDistrict(values.district),
+    { message: "Choose a valid district", path: ["district"] },
+  );
 
 export const destinationSchema = z.object({
   name: z.string().trim().min(2).max(100),

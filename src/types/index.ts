@@ -41,6 +41,7 @@ export type PropertyListItem = {
   price_per_night: number | null;
   city: string | null;
   state: string | null;
+  district: string | null;
   category_name: string | null;
   category_slug: string | null;
   cover_image: string | null;
@@ -100,13 +101,23 @@ export type PlanContext = {
   isUnlimited: boolean;
 };
 
+export type DistrictSummary = {
+  name: string;
+  slug: string;
+  state: string;
+  image: string;
+  propertyCount: number;
+};
+
 export type PropertyFilters = {
   q?: string;
   destination?: string;
+  district?: string;
   category?: string;
   amenity?: string[];
   minPrice?: number;
   maxPrice?: number;
+  minRating?: number;
   sort?: "newest" | "featured" | "price_low" | "price_high";
   page?: number;
 };

@@ -121,7 +121,7 @@ export default async function PropertyPage({
             <h1 className="display-title text-[clamp(2.2rem,5vw,3.6rem)]">{property.name}</h1>
             <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted">
               <MapPin size={15} className="text-gold" />
-              {[property.city, property.state].filter(Boolean).join(", ") || "Location on request"}
+              {[property.district, property.city, property.state].filter(Boolean).join(", ") || "Location on request"}
             </p>
 
             <div className="mt-7">

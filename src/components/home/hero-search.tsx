@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Search } from "lucide-react";
+import { districtOptions } from "@/lib/config";
 import type { CategoryRow, DestinationRow } from "@/types/database.types";
 
 export function HeroSearch({
@@ -14,6 +15,7 @@ export function HeroSearch({
 }) {
   const router = useRouter();
   const [destination, setDestination] = useState("");
+  const [district, setDistrict] = useState("");
   const [category, setCategory] = useState("");
   const [query, setQuery] = useState("");
 
@@ -22,6 +24,7 @@ export function HeroSearch({
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
     if (destination) params.set("destination", destination);
+    if (district) params.set("district", district);
     if (category) params.set("category", category);
     router.push(`/properties${params.size ? `?${params.toString()}` : ""}`);
   };
@@ -29,7 +32,7 @@ export function HeroSearch({
   return (
     <form
       onSubmit={submit}
-      className="grid gap-3 rounded-xl bg-white/30 p-3 shadow-[0_24px_70px_-30px_rgba(8,32,25,0.6)] backdrop-blur md:grid-cols-[1.2fr_1fr_1fr_auto] md:items-center"
+      className="grid gap-3 rounded-xl bg-white/50 p-3 shadow-[0_24px_70px_-30px_rgba(8,32,25,0.6)] backdrop-blur md:grid-cols-[1.2fr_1fr_1fr_1fr_auto] md:items-center"
     >
       <label className="block px-2 py-1">
         <span className="field-label !mb-1 !text-[0.65rem] !uppercase !tracking-wider">
@@ -57,6 +60,22 @@ export function HeroSearch({
             <option key={item.id} value={item.slug}>
               {item.name}
             </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="block border-t border-forest/10 px-2 py-1 md:border-l md:border-t-0">
+        <span className="field-label !mb-1 !text-[0.65rem] !uppercase !tracking-wider">
+          District
+        </span>
+        <select
+          value={district}
+          onChange={(event) => setDistrict(event.target.value)}
+          className="w-full cursor-pointer border-0 bg-transparent px-0 py-2 text-sm text-black outline-none focus:ring-0"
+        >
+          <option value="">All districts</option>
+          {districtOptions.map((item) => (
+            <option key={item.slug} value={item.slug}>{item.name}</option>
           ))}
         </select>
       </label>

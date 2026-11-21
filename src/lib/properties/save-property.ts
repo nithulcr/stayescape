@@ -45,6 +45,8 @@ export async function persistProperty({
   const parsed = propertySchema.safeParse({
     name: formValue(formData, "property_name"),
     short_description: formValue(formData, "property_short_description"),
+    state: formValue(formData, "property_state"),
+    district: formValue(formData, "property_district"),
     destination_id: formValue(formData, "property_destination_id"),
     category_id: formValue(formData, "property_category_id"),
     description: formValue(formData, "property_description"),
@@ -117,6 +119,8 @@ export async function persistProperty({
   const payload: Partial<PropertyRow> = {
     name: values.name,
     short_description: values.short_description,
+    state: values.state,
+    district: values.district || null,
     destination_id: values.destination_id,
     category_id: values.category_id,
   };

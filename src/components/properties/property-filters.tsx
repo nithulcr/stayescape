@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
+import { districtOptions } from "@/lib/config";
 import type { AmenityRow, CategoryRow, DestinationRow } from "@/types/database.types";
 import type { PropertyFilters } from "@/types";
 
@@ -24,7 +25,16 @@ export function PropertyFiltersBar({
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const params = new URLSearchParams();
-    const fields = ["q", "destination", "category", "minPrice", "maxPrice", "sort"] as const;
+    const fields = [
+      "q",
+      "destination",
+      "district",
+      "category",
+      "minPrice",
+      "maxPrice",
+      "minRating",
+      "sort",
+    ] as const;
     for (const field of fields) {
       const value = String(form.get(field) ?? "").trim();
       if (value) params.set(field, value);
@@ -38,15 +48,17 @@ export function PropertyFiltersBar({
   const activeCount = [
     filters.q,
     filters.destination,
+    filters.district,
     filters.category,
     filters.minPrice,
     filters.maxPrice,
+    filters.minRating,
     filters.amenity?.length,
   ].filter(Boolean).length;
 
   return (
     <form onSubmit={submit} className="surface-card mb-8 p-5">
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_auto_auto]">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr_0.7fr_0.7fr]">
         <label>
           <span className="field-label">Search</span>
           <input name="q" defaultValue={filters.q ?? ""} placeholder="Property name" className="input-field" />
@@ -57,6 +69,15 @@ export function PropertyFiltersBar({
             <option value="">All destinations</option>
             {destinations.map((item) => (
               <option key={item.id} value={item.slug}>{item.name}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className="field-label">District</span>
+          <select name="district" defaultValue={filters.district ?? ""} className="input-field">
+            <option value="">All districts</option>
+            {districtOptions.map((district) => (
+              <option key={district.slug} value={district.slug}>{district.name}</option>
             ))}
           </select>
         </label>
@@ -114,20 +135,36 @@ export function PropertyFiltersBar({
         </div>
       </div>
 
-      {open && amenities.length > 0 && (
-        <div className="mt-4 grid gap-2 border-t border-forest/10 pt-4 sm:grid-cols-2 lg:grid-cols-4">
-          {amenities.map((amenity) => (
-            <label key={amenity.id} className="flex items-center gap-2 text-xs text-charcoal/80">
-              <input
-                type="checkbox"
-                name="amenity"
-                value={amenity.id}
-                defaultChecked={filters.amenity?.includes(amenity.id)}
-                className="h-4 w-4 accent-[#123D32]"
-              />
-              {amenity.name}
-            </label>
-          ))}
+      {open && (
+        <div className="mt-4 grid gap-5 border-t border-forest/10 pt-4">
+          <label className="max-w-xs">
+            <span className="field-label">Minimum rating</span>
+            <select name="minRating" defaultValue={filters.minRating ? String(filters.minRating) : ""} className="input-field">
+              <option value="">Any rating</option>
+              <option value="3">3 stars and above</option>
+              <option value="4">4 stars and above</option>
+              <option value="4.5">4.5 stars and above</option>
+            </select>
+          </label>
+          {amenities.length > 0 && (
+            <div>
+              <span className="field-label">Amenities</span>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {amenities.map((amenity) => (
+                  <label key={amenity.id} className="flex items-center gap-2 text-xs text-charcoal/80">
+                    <input
+                      type="checkbox"
+                      name="amenity"
+                      value={amenity.id}
+                      defaultChecked={filters.amenity?.includes(amenity.id)}
+                      className="h-4 w-4 accent-[#123D32]"
+                    />
+                    {amenity.name}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </form>

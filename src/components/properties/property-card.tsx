@@ -178,7 +178,7 @@ export function PropertyCard({ property }: { property: PropertyListItem }) {
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-forest/8 pt-4">
           <span className="inline-flex items-center gap-1.5 text-xs text-muted">
             <MapPin size={13} className="text-gold" />
-            {[property.city, property.state].filter(Boolean).join(", ") || "Location on request"}
+            {[property.district, property.city, property.state].filter(Boolean).join(", ") || "Location on request"}
           </span>
           <Link
             href={`/properties/${property.slug}`}

@@ -77,6 +77,8 @@ export type PropertyRow = Timestamps & {
   slug: string;
   description: string | null;
   short_description: string | null;
+  state: string;
+  district: string | null;
   category_id: string | null;
   destination_id: string | null;
   address: string | null;

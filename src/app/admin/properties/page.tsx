@@ -10,6 +10,7 @@ import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusPill } from "@/components/ui/status-pill";
 import { isSuperAdminRole, requireAdmin } from "@/lib/auth/guards";
+import { districtOptions } from "@/lib/config";
 import { getAllProperties, getPropertyOwnerCandidates } from "@/lib/data/admin";
 import { fallbackPropertyImage } from "@/lib/media";
 
@@ -24,13 +25,13 @@ const statusOptions = [
 export default async function AdminPropertiesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; district?: string }>;
 }) {
-  const { status, q } = await searchParams;
+  const { status, q, district } = await searchParams;
   const { profile } = await requireAdmin();
   const canChangeOwner = isSuperAdminRole(profile?.role);
   const [properties, owners] = await Promise.all([
-    getAllProperties({ status, q }),
+    getAllProperties({ status, q, district }),
     canChangeOwner ? getPropertyOwnerCandidates() : Promise.resolve([]),
   ]);
 
@@ -68,6 +69,15 @@ export default async function AdminPropertiesPage({
             ))}
           </select>
         </label>
+        <label className="flex flex-col gap-1 text-xs text-muted">
+          District
+          <select name="district" defaultValue={district ?? ""} className="input-field !w-44">
+            <option value="">All districts</option>
+            {districtOptions.map((item) => (
+              <option key={item.slug} value={item.name}>{item.name}</option>
+            ))}
+          </select>
+        </label>
         <button type="submit" className="btn-secondary">
           Filter
         </button>
@@ -97,7 +107,7 @@ export default async function AdminPropertiesPage({
                     {property.is_featured && <StatusPill status="premium">Featured</StatusPill>}
                   </div>
                   <p className="mt-1 text-xs text-muted">
-                    {property.destination_name} · {property.category_name} · by {property.owner_name}
+                    {property.district ? `${property.district}, ${property.state}` : property.state} · {property.destination_name} · {property.category_name} · by {property.owner_name}
                   </p>
                   <p className="mt-2 line-clamp-2 text-sm text-charcoal/70">
                     {property.short_description ?? "No short description."}

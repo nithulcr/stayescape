@@ -1,6 +1,8 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { HomeHero } from "@/components/home/home-hero";
 import { DestinationGrid } from "@/components/home/destination-grid";
+import { DistrictGrid } from "@/components/home/district-grid";
 import { CategoryGrid } from "@/components/home/category-grid";
 import { PropertySection } from "@/components/home/property-section";
 import { WhyList } from "@/components/home/why-list";
@@ -10,15 +12,17 @@ import { Reveal } from "@/components/ui/reveal";
 import {
   getCategories,
   getDestinations,
+  getDistrictSummaries,
   getFeaturedProperties,
   getRecentlyAddedProperties,
   getTopRatedProperties,
 } from "@/lib/data/public";
 
 export default async function HomePage() {
-  const [destinations, categories, featured, topRated, recent] = await Promise.all([
+  const [destinations, categories, districts, featured, topRated, recent] = await Promise.all([
     getDestinations(),
     getCategories(),
+    getDistrictSummaries(),
     getFeaturedProperties(6),
     getTopRatedProperties(6),
     getRecentlyAddedProperties(3),
@@ -47,6 +51,26 @@ export default async function HomePage() {
           </Suspense>
         </div>
       </section>
+
+      {districts.length > 0 && (
+        <section className="section-space bg-light-ivory">
+          <div className="site-container">
+            <Reveal>
+              <div className="mb-9 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+                <div className="max-w-2xl">
+                  <p className="eyebrow">Browse locally</p>
+                  <h2 className="section-title mt-3">Explore stays by district.</h2>
+                  <p className="mt-3 text-sm leading-relaxed text-muted md:text-base">
+                    Choose a Kerala district to see the stays currently available there.
+                  </p>
+                </div>
+                <Link href="/properties" className="btn-secondary">View all stays</Link>
+              </div>
+            </Reveal>
+            <DistrictGrid districts={districts} />
+          </div>
+        </section>
+      )}
 
       <div className="bg-light-ivory">
         <PropertySection
