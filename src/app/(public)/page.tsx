@@ -48,12 +48,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <PropertySection
+      <div className="bg-light-ivory">
+        <PropertySection
         items={featured}
         eyebrow="Editor's picks"
         title="Featured stays."
         description="A small selection of places we love for their setting, character and hospitality."
       />
+      </div>
 
       <PropertySection
         items={topRated}
@@ -63,7 +65,7 @@ export default async function HomePage() {
         emptyMessage="Top rated stays will appear here once guests have reviewed their visits."
       />
 
-      <section id="property-types" className="section-space bg-sand/40">
+      <section id="property-types" className="section-space bg-light-ivory">
         <div className="site-container">
           <Reveal>
             <div className="mb-9 max-w-3xl">

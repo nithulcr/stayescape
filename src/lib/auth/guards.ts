@@ -45,7 +45,9 @@ export function isSuperAdminRole(role: string | null | undefined) {
 
 export async function requireOwner(nextPath = "/dashboard") {
   const context = await requireUser(nextPath);
-  if (context.profile?.role === "admin") redirect("/admin");
+  if (!["owner", "admin", "super_admin"].includes(context.profile?.role ?? "")) {
+    redirect("/dashboard");
+  }
   return context;
 }
 

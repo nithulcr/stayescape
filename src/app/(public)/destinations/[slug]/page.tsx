@@ -76,7 +76,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
         </div>
       </section>
 
-      <section className="section-space bg-sand/40 pt-0">
+      <section className="section-space bg-light-ivory pt-0">
         <div className="site-container">
           <h2 className="section-title mb-7">Stays in {destination.name}</h2>
           {properties.items.length ? (

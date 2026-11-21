@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getAuthContext } from "@/lib/auth/guards";
 import { getServerClient } from "@/lib/supabase/server";
+import { enforceRateLimit } from "@/lib/security/rate-limit";
 import {
   parseOptional,
   reviewSchema,
@@ -35,6 +36,10 @@ export async function submitReviewAction(
       message: "Please check your review.",
       fieldErrors: schemaFieldErrors(parsed.error),
     };
+  }
+
+  if (!(await enforceRateLimit("review", parsed.data.property_id))) {
+    return { ok: false, message: "Too many reviews. Please try again later." };
   }
 
   const supabase = await getServerClient();

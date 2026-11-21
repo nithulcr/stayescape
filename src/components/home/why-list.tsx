@@ -26,23 +26,20 @@ const features = [
 
 export function WhyList() {
   return (
-    <section className="section-space bg-sand/40">
+    <section className="section-space bg-light-ivory">
       <div className="site-container grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
         <Reveal>
           <p className="eyebrow">For property owners</p>
           <h2 className="section-title mt-3">A better way to fill your calendar.</h2>
-          <p className="mt-4 max-w-lg text-sm leading-relaxed text-muted md:text-base">
+          <p className="mt-4 max-w-lg text-sm  text-muted md:text-base">
             STAYSCAPE is built for independent owners who want a premium presence without the clutter of mass marketplaces. Start free, upgrade when you are ready.
           </p>
-          <a href="#owner-cta" className="btn-primary mt-7">
-            Start listing
-          </a>
         </Reveal>
 
         <div className="grid gap-4 sm:grid-cols-2">
           {features.map((feature, index) => (
             <Reveal key={feature.title} delay={index * 0.06}>
-              <div className="surface-card h-full p-6">
+              <div className="surface-card bg-sand/40 h-full p-6">
                 <feature.icon size={22} className="text-gold" />
                 <h3 className="mt-4 font-serif text-lg text-forest-deep">{feature.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{feature.text}</p>

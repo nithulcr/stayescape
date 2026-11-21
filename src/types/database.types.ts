@@ -18,6 +18,7 @@ export type ProfileRow = Timestamps & {
   full_name: string | null;
   role: UserRole;
   phone: string | null;
+  whatsapp_number: string | null;
   avatar_url: string | null;
   account_status: AccountStatus;
 };
@@ -174,10 +175,56 @@ export type ReviewRow = Timestamps & {
   status: "pending" | "approved" | "rejected";
 };
 
+export type ContactMessageRow = {
+  id: string;
+  name: string;
+  email: string;
+  subject: string | null;
+  message: string;
+  status: "new" | "read" | "replied" | "closed";
+  created_at: string;
+};
+
+export type ReviewReportRow = {
+  id: string;
+  review_id: string;
+  reporter_user_id: string | null;
+  reporter_guest_token: string | null;
+  reason: "spam" | "abuse" | "fake" | "irrelevant" | "private-information" | "other";
+  details: string | null;
+  status: "open" | "reviewed" | "dismissed" | "actioned";
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+};
+
+export type AdminAuditLogRow = {
+  id: string;
+  occurred_at: string;
+  actor_id: string | null;
+  actor_email: string | null;
+  action: string;
+  target_table: string | null;
+  target_id: string | null;
+  metadata: Record<string, unknown>;
+};
+
+export type AccountDeletionRequestRow = {
+  id: string;
+  user_id: string | null;
+  email_snapshot: string;
+  reason: string | null;
+  status: "pending" | "anonymised" | "completed" | "rejected";
+  requested_at: string;
+  completed_at: string | null;
+};
+
 export type PublicOwnerRow = {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
+  phone: string | null;
+  whatsapp_number: string | null;
 };
 
 type Table<T, I, U> = {
@@ -256,6 +303,26 @@ export type Database = {
         Partial<ReviewRow> & { property_id: string; rating: number },
         Partial<ReviewRow>
       >;
+      contact_messages: Table<
+        ContactMessageRow,
+        Partial<ContactMessageRow> & { name: string; email: string; message: string },
+        Partial<ContactMessageRow>
+      >;
+      review_reports: Table<
+        ReviewReportRow,
+        Partial<ReviewReportRow> & { review_id: string; reason: ReviewReportRow["reason"] },
+        Partial<ReviewReportRow>
+      >;
+      admin_audit_logs: Table<
+        AdminAuditLogRow,
+        Partial<AdminAuditLogRow> & { action: string },
+        Partial<AdminAuditLogRow>
+      >;
+      account_deletion_requests: Table<
+        AccountDeletionRequestRow,
+        Partial<AccountDeletionRequestRow> & { email_snapshot: string },
+        Partial<AccountDeletionRequestRow>
+      >;
     };
     Views: {
       public_property_owners: {
@@ -266,6 +333,15 @@ export type Database = {
     Functions: {
       is_admin: { Args: never; Returns: boolean };
       is_super_admin: { Args: never; Returns: boolean };
+      consume_rate_limit: {
+        Args: {
+          p_action: string;
+          p_subject: string;
+          p_limit: number;
+          p_window_seconds: number;
+        };
+        Returns: boolean;
+      };
     };
     Enums: {
       user_role: UserRole;

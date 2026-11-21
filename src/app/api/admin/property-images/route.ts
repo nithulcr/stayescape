@@ -1,17 +1,12 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthContext, isAdminRole } from "@/lib/auth/guards";
-import { imageConstraints, storageBucket } from "@/lib/config";
+import { storageBucket } from "@/lib/config";
 import { getPlanContextForUser } from "@/lib/plans/limits";
+import { enforceRateLimit } from "@/lib/security/rate-limit";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { getServerClient } from "@/lib/supabase/server";
-
-const extensions: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/avif": "avif",
-};
+import { validateImageUpload } from "@/lib/uploads/validate-image";
 
 export async function POST(request: NextRequest) {
   const context = await getAuthContext();
@@ -33,12 +28,15 @@ export async function POST(request: NextRequest) {
   if (typeof propertyId !== "string" || !(file instanceof File)) {
     return NextResponse.json({ error: "Invalid upload" }, { status: 400 });
   }
-  if (!imageConstraints.acceptedTypes.includes(file.type as (typeof imageConstraints.acceptedTypes)[number])) {
-    return NextResponse.json({ error: "Use a JPG, PNG, WebP or AVIF image." }, { status: 400 });
+  if (!(await enforceRateLimit("upload", context.user.id))) {
+    return NextResponse.json({ error: "Too many uploads. Please try again later." }, { status: 429 });
   }
-  if (file.size > imageConstraints.maxBytes) {
-    return NextResponse.json({ error: "Images must be 5 MB or smaller." }, { status: 400 });
+
+  const validation = await validateImageUpload(file);
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
+  const image = validation.image;
 
   const { data: property } = await supabase
     .from("properties")
@@ -64,12 +62,10 @@ export async function POST(request: NextRequest) {
   }
 
   const storage = supabase.storage.from(storageBucket);
-  const extension = extensions[file.type] ?? "jpg";
-  const path = `${property.owner_id}/${propertyId}/${crypto.randomUUID()}.${extension}`;
-  const bytes = new Uint8Array(await file.arrayBuffer());
+  const path = `${property.owner_id}/${propertyId}/${crypto.randomUUID()}.${image.extension}`;
 
-  const { error: uploadError } = await storage.upload(path, bytes, {
-    contentType: file.type,
+  const { error: uploadError } = await storage.upload(path, image.bytes, {
+    contentType: image.contentType,
     upsert: false,
   });
   if (uploadError) {
@@ -83,7 +79,7 @@ export async function POST(request: NextRequest) {
       property_id: propertyId,
       storage_path: path,
       public_url: publicUrl,
-      alt_text: file.name.slice(0, 150),
+      alt_text: image.fileName,
       position: count ?? 0,
       is_cover: (count ?? 0) === 0,
     })

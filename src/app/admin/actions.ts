@@ -7,7 +7,9 @@ import { persistProperty } from "@/lib/properties/save-property";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { getServerClient } from "@/lib/supabase/server";
 import { getDestinationImageStoragePath } from "@/lib/utils";
+import { recordAdminAudit } from "@/lib/security/audit";
 import {
+  adminReviewReportActionSchema,
   categorySchema,
   destinationSchema,
   enquiryResponseSchema,
@@ -48,8 +50,17 @@ function destinationDatabaseError(action: string, message: string) {
   return message;
 }
 
+async function activeSuperAdminCount(supabase: Client) {
+  const { count } = await supabase
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("role", "super_admin")
+    .eq("account_status", "active");
+  return count ?? 0;
+}
+
 export async function setPropertyStatusAction(formData: FormData) {
-  await requireAdmin();
+  const { user, profile } = await requireAdmin();
   const supabase = await client();
   if (!supabase) return;
   const id = parseOptional(formData.get("propertyId"));
@@ -67,6 +78,14 @@ export async function setPropertyStatusAction(formData: FormData) {
       approved_at: status === "approved" ? new Date().toISOString() : null,
     })
     .eq("id", id);
+  await recordAdminAudit({
+    actorId: user.id,
+    actorEmail: profile?.email ?? user.email ?? null,
+    action: status === "approved" ? "property.approved" : "property.rejected",
+    targetTable: "properties",
+    targetId: id,
+    metadata: { reason: reason ?? null },
+  });
   revalidateAdmin();
 }
 
@@ -82,7 +101,7 @@ export async function toggleFeaturedAction(formData: FormData) {
 }
 
 export async function deletePropertyAdminAction(formData: FormData) {
-  await requireAdmin();
+  const { user, profile } = await requireAdmin();
   const supabase = await client();
   if (!supabase) return;
   const id = parseOptional(formData.get("propertyId"));
@@ -97,6 +116,14 @@ export async function deletePropertyAdminAction(formData: FormData) {
   }
   await supabase.from("property_images").delete().eq("property_id", id);
   await supabase.from("properties").delete().eq("id", id);
+  await recordAdminAudit({
+    actorId: user.id,
+    actorEmail: profile?.email ?? user.email ?? null,
+    action: "property.deleted",
+    targetTable: "properties",
+    targetId: id,
+    metadata: { removedImages: images?.length ?? 0 },
+  });
   revalidateAdmin();
 }
 
@@ -111,7 +138,11 @@ export async function createPropertyAdminAction(
   _previous: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const { user } = await requireAdmin();
+  const { user, profile } = await requireAdmin();
+  const submittedOwnerId = parseOptional(formData.get("ownerId"));
+  if (submittedOwnerId && submittedOwnerId !== user.id && !isSuperAdminRole(profile?.role)) {
+    return { ok: false, message: "Only a super admin can assign a listing to another owner." };
+  }
   return persistProperty({
     formData,
     actorId: user.id,
@@ -124,15 +155,26 @@ export async function savePropertyAdminAction(
   _previous: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const { user } = await requireAdmin();
-  if (!parseOptional(formData.get("propertyId"))) {
+  const { user, profile } = await requireAdmin();
+  const propertyId = parseOptional(formData.get("propertyId"));
+  if (!propertyId) {
     return { ok: false, message: "Property not found." };
+  }
+  const submittedOwnerId = parseOptional(formData.get("ownerId"));
+  if (submittedOwnerId && !isSuperAdminRole(profile?.role)) {
+    const supabase = await client();
+    const { data: existing } = supabase
+      ? await supabase.from("properties").select("owner_id").eq("id", propertyId).maybeSingle()
+      : { data: null };
+    if (!existing || existing.owner_id !== submittedOwnerId) {
+      return { ok: false, message: "Only a super admin can change a listing owner." };
+    }
   }
   return persistProperty({ formData, actorId: user.id, adminMode: true });
 }
 
 export async function changePropertyOwnerAdminAction(formData: FormData) {
-  await requireSuperAdmin();
+  const { user, profile } = await requireSuperAdmin();
   const supabase = await client();
   if (!supabase) return;
   const propertyId = parseOptional(formData.get("propertyId"));
@@ -147,6 +189,14 @@ export async function changePropertyOwnerAdminAction(formData: FormData) {
     .update({ owner_id: ownerId })
     .eq("id", propertyId);
   if (error) return;
+  await recordAdminAudit({
+    actorId: user.id,
+    actorEmail: profile?.email ?? user.email ?? null,
+    action: "property.owner_changed",
+    targetTable: "properties",
+    targetId: propertyId,
+    metadata: { ownerId },
+  });
   revalidateAdmin();
 }
 
@@ -223,17 +273,37 @@ export async function deleteImageAdminAction(formData: FormData) {
 }
 
 export async function setUserRoleAction(formData: FormData) {
-  const { user } = await requireSuperAdmin();
+  const { user, profile } = await requireSuperAdmin();
   const supabase = await client();
   if (!supabase) return;
   const id = parseOptional(formData.get("userId"));
   const role = parseOptional(formData.get("role"));
   const allowedRoles = ["user", "owner", "admin", "super_admin"];
   if (!id || id === user.id || !allowedRoles.includes(role ?? "")) return;
+
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("role,email")
+    .eq("id", id)
+    .maybeSingle();
+  if (!target || isAdminRole(target.role) && !isSuperAdminRole(profile?.role)) return;
+
+  if (target.role === "super_admin" && role !== "super_admin" && (await activeSuperAdminCount(supabase)) <= 1) {
+    return;
+  }
+
   await supabase
     .from("profiles")
     .update({ role: role as "user" | "owner" | "admin" | "super_admin" })
     .eq("id", id);
+  await recordAdminAudit({
+    actorId: user.id,
+    actorEmail: profile?.email ?? user.email ?? null,
+    action: "user.role_changed",
+    targetTable: "profiles",
+    targetId: id,
+    metadata: { from: target.role, to: role, targetEmail: target.email },
+  });
   revalidateAdmin();
 }
 
@@ -247,13 +317,25 @@ export async function setUserStatusAction(formData: FormData) {
 
   const { data: target } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role,email,account_status")
     .eq("id", id)
     .maybeSingle();
+  if (!target) return;
 
-  if (isAdminRole(target?.role) && !isSuperAdminRole(profile?.role)) return;
+  if (isAdminRole(target.role) && !isSuperAdminRole(profile?.role)) return;
+  if (target.role === "super_admin" && status === "suspended" && (await activeSuperAdminCount(supabase)) <= 1) {
+    return;
+  }
 
   await supabase.from("profiles").update({ account_status: status }).eq("id", id);
+  await recordAdminAudit({
+    actorId: user.id,
+    actorEmail: profile?.email ?? user.email ?? null,
+    action: "user.status_changed",
+    targetTable: "profiles",
+    targetId: id,
+    metadata: { from: target.account_status, to: status, targetEmail: target.email },
+  });
   revalidateAdmin();
 }
 
@@ -261,7 +343,7 @@ export async function savePlanAction(
   _previous: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  const { user, profile } = await requireAdmin();
   const supabase = await client();
   if (!supabase) return { ok: false, message: "Database not configured." };
   const id = parseOptional(formData.get("planId"));
@@ -294,6 +376,14 @@ export async function savePlanAction(
     .eq("id", id);
 
   if (error) return { ok: false, message: error.message };
+  await recordAdminAudit({
+    actorId: user.id,
+    actorEmail: profile?.email ?? user.email ?? null,
+    action: "plan.updated",
+    targetTable: "plans",
+    targetId: id,
+    metadata: parsed.data as unknown as Record<string, unknown>,
+  });
   revalidateAdmin();
   return { ok: true, message: "Plan settings updated." };
 }
@@ -521,22 +611,76 @@ export async function deleteEnquiryAdminAction(formData: FormData) {
 }
 
 export async function moderateReviewAction(formData: FormData) {
-  await requireAdmin();
+  const { user, profile } = await requireAdmin();
   const supabase = await client();
   if (!supabase) return;
   const id = parseOptional(formData.get("reviewId"));
   const status = parseOptional(formData.get("status"));
   if (!id || (status !== "approved" && status !== "rejected")) return;
   await supabase.from("reviews").update({ status }).eq("id", id);
+  await recordAdminAudit({
+    actorId: user.id,
+    actorEmail: profile?.email ?? user.email ?? null,
+    action: status === "approved" ? "review.approved" : "review.rejected",
+    targetTable: "reviews",
+    targetId: id,
+  });
   revalidateAdmin();
 }
 
 export async function deleteReviewAdminAction(formData: FormData) {
-  await requireAdmin();
+  const { user, profile } = await requireAdmin();
   const supabase = await client();
   if (!supabase) return;
   const id = parseOptional(formData.get("reviewId"));
   if (!id) return;
   await supabase.from("reviews").delete().eq("id", id);
+  await recordAdminAudit({
+    actorId: user.id,
+    actorEmail: profile?.email ?? user.email ?? null,
+    action: "review.deleted",
+    targetTable: "reviews",
+    targetId: id,
+  });
+  revalidateAdmin();
+}
+
+export async function resolveReviewReportAction(formData: FormData) {
+  const { user, profile } = await requireAdmin();
+  const parsed = adminReviewReportActionSchema.safeParse({
+    reportId: formData.get("reportId"),
+    decision: formData.get("decision"),
+  });
+  if (!parsed.success) return;
+
+  const supabase = await client();
+  if (!supabase) return;
+  const { data: report } = await supabase
+    .from("review_reports")
+    .select("review_id")
+    .eq("id", parsed.data.reportId)
+    .maybeSingle();
+  if (!report) return;
+
+  if (parsed.data.decision === "actioned") {
+    await supabase.from("reviews").update({ status: "rejected" }).eq("id", report.review_id);
+  }
+  await supabase
+    .from("review_reports")
+    .update({
+      status: parsed.data.decision,
+      reviewed_by: user.id,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", parsed.data.reportId);
+
+  await recordAdminAudit({
+    actorId: user.id,
+    actorEmail: profile?.email ?? user.email ?? null,
+    action: `review_report.${parsed.data.decision}`,
+    targetTable: "review_reports",
+    targetId: parsed.data.reportId,
+    metadata: { reviewId: report.review_id },
+  });
   revalidateAdmin();
 }

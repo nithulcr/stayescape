@@ -4,7 +4,7 @@
   --color-forest: #123d32;
   --color-forest-deep: #0c2b23;
   --color-forest-soft: #1e5a49;
-  --color-gold: #fcab01;
+  --color-gold: #e9af36;
   --color-gold-soft: #e4d3b3;
   --color-ivory: #f7f4ec;
   --color-sand: #efe9dc;
@@ -13,7 +13,12 @@
 --font-sans: var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-boldonse), system-ui;
 }
-
+ .bg-light-ivory{
+    background-color:#faf9f7;
+ }
+ .font-serif{
+  line-height: 1.3!important;
+ }
 @layer base {
   body {
     background-color: var(--color-ivory);
@@ -50,6 +55,7 @@
     font-family: var(--font-serif);
 
  }
+
   .section-space {
     padding-block: 4.5rem;
   }

@@ -70,6 +70,8 @@ export type PropertyDetail = PropertyListItem & {
   owner_id: string;
   owner_name: string | null;
   owner_avatar: string | null;
+  owner_phone: string | null;
+  owner_whatsapp: string | null;
   reviews: PropertyReview[];
 };
 

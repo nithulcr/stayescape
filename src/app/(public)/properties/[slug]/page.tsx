@@ -23,7 +23,7 @@ import { getAuthContext } from "@/lib/auth/guards";
 import { getPropertyBySlug, getSimilarProperties } from "@/lib/data/public";
 import { guestReviewCookie, isValidGuestReviewId } from "@/lib/reviews/guest";
 import { fallbackPropertyImage } from "@/lib/media";
-import { formatINR, whatsappLink } from "@/lib/utils";
+import { formatINR, telephoneLink, whatsappLink } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -60,7 +60,11 @@ export default async function PropertyPage({
 
   const similar = await getSimilarProperties(property, 3);
   const canReview = !auth?.user.id || auth.user.id !== property.owner_id;
-  const whatsapp = whatsappLink(property.whatsapp_number, `Hello, I'm interested in ${property.name}.`);
+  const whatsapp = whatsappLink(
+    property.owner_whatsapp ?? property.owner_phone,
+    `Hi, I'm interested in ${property.name}. Could you please share availability and more details?`,
+  );
+  const callOwner = telephoneLink(property.owner_phone);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "LodgingBusiness",
@@ -212,13 +216,18 @@ export default async function PropertyPage({
               )}
               <div className="mt-5 grid gap-2">
                 {whatsapp && (
-                  <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="btn-secondary w-full">
-                    <MessageCircle size={15} /> Chat on WhatsApp
+                  <a
+                    href={whatsapp}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1EBE57]"
+                  >
+                    <MessageCircle size={16} /> Chat on WhatsApp
                   </a>
                 )}
-                {property.contact_phone && (
-                  <a href={`tel:${property.contact_phone}`} className="btn-secondary w-full">
-                    <Phone size={15} /> {property.contact_phone}
+                {callOwner && (
+                  <a href={callOwner} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-forest px-4 py-3 text-sm font-semibold text-white transition hover:bg-forest-soft">
+                    <Phone size={16} /> Call Owner
                   </a>
                 )}
               </div>
@@ -249,7 +258,7 @@ export default async function PropertyPage({
       </div>
 
       {similar.length > 0 && (
-        <section className="section-space bg-sand/40">
+        <section className="section-space bg-light-ivory">
           <div className="site-container">
             <h2 className="section-title mb-7">You might also like</h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

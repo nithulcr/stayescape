@@ -78,7 +78,7 @@ export function EnquiryForm({
         <input name="guests" type="number" min={1} max={50} className="input-field" placeholder="2" />
         {state.fieldErrors?.guests && <span className="field-error">{state.fieldErrors.guests[0]}</span>}
       </label>
-      <label>
+      {/* <label>
         <span className="field-label">Message</span>
         <textarea
           name="message"
@@ -89,7 +89,7 @@ export function EnquiryForm({
           placeholder={priceOnRequest ? "Tell the owner about your dates and request a quote." : "Tell the owner about your dates and what you are looking for."}
         />
         {state.fieldErrors?.message && <span className="field-error">{state.fieldErrors.message[0]}</span>}
-      </label>
+      </label> */}
       {state.message && <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">{state.message}</p>}
       <SubmitButton priceOnRequest={priceOnRequest} />
       <p className="text-center text-[0.7rem] leading-relaxed text-muted">

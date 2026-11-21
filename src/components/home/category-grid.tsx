@@ -17,7 +17,7 @@ export function CategoryGrid({ categories }: { categories: CategoryRow[] }) {
           <Link
             key={category.id}
             href={`/properties?category=${category.slug}`}
-            className="group surface-card flex flex-col aspect-5/4 transition-transform hover:-translate-y-0.5 relative"
+            className="group surface-card flex flex-col aspect-4/5 transition-transform hover:-translate-y-0.5 relative"
           >
             <div className="relative shrink-0  w-full h-full overflow-hidden rounded-lg bg-sand">
               <Image
@@ -31,7 +31,7 @@ export function CategoryGrid({ categories }: { categories: CategoryRow[] }) {
             </div>
             <span className="p-4 z-10 flex flex-col justify-end h-full absolute top-0 left-0 w-full gap-3">
              
-              <h3 className="mt-1 truncate font-serif text-lg font-light text-white">{category.name}</h3>
+              <h3 className="mt-1 truncate uppercase font-serif  text-white">{category.name}</h3>
             </span>
           </Link>
         );

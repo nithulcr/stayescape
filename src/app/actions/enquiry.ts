@@ -1,6 +1,7 @@
 "use server";
 
 import { getServerClient } from "@/lib/supabase/server";
+import { enforceRateLimit } from "@/lib/security/rate-limit";
 import { enquirySchema, schemaFieldErrors } from "@/lib/validations";
 import type { ActionResult } from "@/types";
 
@@ -25,6 +26,10 @@ export async function submitEnquiryAction(
       message: "Please check the highlighted fields.",
       fieldErrors: schemaFieldErrors(parsed.error),
     };
+  }
+
+  if (!(await enforceRateLimit("enquiry", parsed.data.email.toLowerCase()))) {
+    return { ok: false, message: "Too many enquiries. Please try again later." };
   }
 
   const supabase = await getServerClient();

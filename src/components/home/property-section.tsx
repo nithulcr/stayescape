@@ -19,7 +19,7 @@ export function PropertySection({
   emptyMessage?: string;
 }) {
   return (
-    <section className="section-space bg-ivory">
+    <section className="section-space ">
       <div className="site-container">
         <div className="mb-9 flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div className="max-w-2xl">

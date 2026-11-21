@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerClient } from "@/lib/supabase/server";
+import { enforceRateLimit } from "@/lib/security/rate-limit";
 import { siteUrl } from "@/lib/config";
 import {
   forgotPasswordSchema,
@@ -107,6 +108,10 @@ export async function registerAction(
     };
   }
 
+  if (!(await enforceRateLimit("register", parsed.data.email.toLowerCase()))) {
+    return { ok: false, message: "Too many registration attempts. Please try again later." };
+  }
+
   const supabase = await getServerClient();
   if (!supabase) {
     return {
@@ -162,6 +167,12 @@ export async function loginAction(
     };
   }
 
+  const nextPath = safeNext(formData.get("next"));
+  const loginScope = nextPath?.startsWith("/admin") ? "admin" : "user";
+  if (!(await enforceRateLimit("login", `${parsed.data.email.toLowerCase()}|${loginScope}`))) {
+    return { ok: false, message: "Too many sign-in attempts. Please try again later." };
+  }
+
   const supabase = await getServerClient();
   if (!supabase) {
     return { ok: false, message: "Authentication is not configured yet." };
@@ -209,6 +220,10 @@ export async function forgotPasswordAction(
     };
   }
 
+  if (!(await enforceRateLimit("forgot-password", parsed.data.email.toLowerCase()))) {
+    return { ok: false, message: "Too many reset requests. Please try again later." };
+  }
+
   const supabase = await getServerClient();
   if (!supabase) return { ok: false, message: "Authentication is not configured yet." };
 
@@ -245,8 +260,22 @@ export async function resetPasswordAction(
     };
   }
 
+  if (!(await enforceRateLimit("reset-password"))) {
+    return { ok: false, message: "Too many password reset attempts. Please try again later." };
+  }
+
   const supabase = await getServerClient();
   if (!supabase) return { ok: false, message: "Authentication is not configured yet." };
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const recoveryAge = user?.recovery_sent_at
+    ? Date.now() - new Date(user.recovery_sent_at).getTime()
+    : Number.POSITIVE_INFINITY;
+  if (!user || recoveryAge < 0 || recoveryAge > 30 * 60 * 1000) {
+    return { ok: false, message: "This password reset link is invalid or has expired. Request a new one." };
+  }
 
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) {
@@ -261,10 +290,10 @@ export async function resetPasswordAction(
   }
 
   const {
-    data: { user },
+    data: { user: updatedUser },
   } = await supabase.auth.getUser();
-  const { data: profile } = user
-    ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+  const { data: profile } = updatedUser
+    ? await supabase.from("profiles").select("role").eq("id", updatedUser.id).maybeSingle()
     : { data: null };
 
   revalidatePath("/", "layout");

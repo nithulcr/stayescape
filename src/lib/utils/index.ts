@@ -38,11 +38,27 @@ export function formatDate(value: string | null | undefined) {
   }).format(new Date(value));
 }
 
-export function whatsappLink(number: string | null, message = "Hello, I'd like to enquire about a stay.") {
-  if (!number) return null;
-  const digits = number.replace(/\D/g, "");
-  if (digits.length < 8) return null;
+export function whatsappLink(number: string | null | undefined, message = "Hello, I'd like to enquire about a stay.") {
+  const trimmed = number?.trim();
+  if (!trimmed) return null;
+  const hasInternationalPrefix = trimmed.startsWith("00");
+  let digits = trimmed.replace(/\D/g, "");
+  if (hasInternationalPrefix) digits = digits.slice(2);
+  if (digits.length === 10 && /^[6-9]/.test(digits)) {
+    digits = `91${digits}`;
+  }
+  if (digits.length < 8 || digits.length > 15) return null;
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+
+export function telephoneLink(number: string | null | undefined) {
+  const trimmed = number?.trim();
+  if (!trimmed) return null;
+  const hasInternationalPrefix = trimmed.startsWith("00");
+  let cleaned = trimmed.replace(/[^\d+]/g, "");
+  if (hasInternationalPrefix) cleaned = `+${cleaned.slice(2)}`;
+  if (!/\d/.test(cleaned) || cleaned.length < 8) return null;
+  return `tel:${cleaned}`;
 }
 
 export function isValidHttpUrl(value: string | null | undefined) {

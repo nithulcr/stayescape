@@ -29,7 +29,7 @@ export function HeroSearch({
   return (
     <form
       onSubmit={submit}
-      className="grid gap-3 rounded-xl bg-white/95 p-3 shadow-[0_24px_70px_-30px_rgba(8,32,25,0.6)] backdrop-blur md:grid-cols-[1.2fr_1fr_1fr_auto] md:items-center"
+      className="grid gap-3 rounded-xl bg-white/30 p-3 shadow-[0_24px_70px_-30px_rgba(8,32,25,0.6)] backdrop-blur md:grid-cols-[1.2fr_1fr_1fr_auto] md:items-center"
     >
       <label className="block px-2 py-1">
         <span className="field-label !mb-1 !text-[0.65rem] !uppercase !tracking-wider">
@@ -39,7 +39,7 @@ export function HeroSearch({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search stays by name"
-          className="w-full border-0 bg-transparent px-0 py-2 text-sm text-black outline-none placeholder:text-muted/70 focus:ring-0"
+          className="w-full border-0 bg-transparent px-0 py-2 text-sm text-black outline-none placeholder:text-black/70 focus:ring-0"
         />
       </label>
 

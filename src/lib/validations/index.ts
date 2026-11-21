@@ -138,6 +138,31 @@ export const planSchema = z.object({
   expired_listing_visibility: z.enum(["keep_visible", "hide"]),
 });
 
+export const contactMessageSchema = z.object({
+  name: z.string().trim().min(2, "Enter your name").max(100),
+  email: z.string().trim().email("Enter a valid email address"),
+  subject: optionalText(120),
+  message: z.string().trim().min(10, "Write at least 10 characters").max(4000, "Keep your message under 4000 characters"),
+});
+
+export const reviewReportSchema = z.object({
+  review_id: z.string().uuid(),
+  guest_token: z.string().uuid().optional().or(z.literal("")),
+  reason: z.enum(["spam", "abuse", "fake", "irrelevant", "private-information", "other"]),
+  details: optionalText(2000),
+});
+
+export const adminReviewReportActionSchema = z.object({
+  reportId: z.string().uuid(),
+  decision: z.enum(["dismissed", "actioned"]),
+});
+
+export const accountDeletionSchema = z.object({
+  confirmation: z.literal("DELETE"),
+  email: z.string().trim().email("Enter your account email"),
+  reason: optionalText(500),
+});
+
 export function schemaFieldErrors(error: z.ZodError) {
   const errors: Record<string, string[]> = {};
   for (const issue of error.issues) {

@@ -395,7 +395,7 @@ export async function getPropertyBySlug(
       supabase.from("property_amenities").select("amenity_id").eq("property_id", property.id),
       supabase
         .from("public_property_owners")
-        .select("*")
+        .select("id, full_name, avatar_url, phone, whatsapp_number")
         .eq("id", property.owner_id)
         .maybeSingle(),
     ]);
@@ -437,6 +437,8 @@ export async function getPropertyBySlug(
       owner_id: property.owner_id,
       owner_name: ownerResult.data?.full_name ?? null,
       owner_avatar: ownerResult.data?.avatar_url ?? null,
+      owner_phone: ownerResult.data?.phone ?? null,
+      owner_whatsapp: ownerResult.data?.whatsapp_number ?? null,
       reviews,
     };
   } catch {

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { MessageSquareText, PenLine, Star } from "lucide-react";
 import { ReviewForm } from "@/components/properties/review-form";
+import { ReportReviewForm } from "@/components/properties/report-review-form";
 import { formatDate } from "@/lib/utils";
 import type { PropertyReview } from "@/types";
 
@@ -157,6 +158,9 @@ export function ReviewList({
               {review.comment && (
                 <p className="mt-2 text-sm leading-relaxed text-charcoal/75">{review.comment}</p>
               )}
+              <div className="mt-4 border-t border-forest/10 pt-3">
+                <ReportReviewForm reviewId={review.id} guestToken={guestToken} />
+              </div>
             </article>
           ))}
         </div>

@@ -11,6 +11,7 @@ import type {
   ProfileRow,
   PropertyImageRow,
   PropertyRow,
+  ReviewReportRow,
   ReviewRow,
   SubscriptionRow,
 } from "@/types/database.types";
@@ -421,4 +422,51 @@ export async function getPropertyOwnerCandidates(): Promise<{ id: string; label:
     id: profile.id,
     label: `${profile.full_name || profile.email || "Account"} (${profile.email ?? profile.role})`,
   }));
+}
+
+export type AdminReviewReport = ReviewReportRow & {
+  review: Pick<ReviewRow, "id" | "reviewer_name" | "rating" | "title" | "comment" | "status"> | null;
+  property: Pick<PropertyRow, "id" | "name" | "slug"> | null;
+};
+
+export async function getAdminReviewReports(): Promise<AdminReviewReport[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+
+  const { data: reports } = await supabase
+    .from("review_reports")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (!reports?.length) return [];
+
+  const reviewIds = [...new Set(reports.map((report) => report.review_id))];
+  const { data: reviews } = await supabase
+    .from("reviews")
+    .select("id,property_id,reviewer_name,rating,title,comment,status")
+    .in("id", reviewIds);
+  const propertyIds = [...new Set((reviews ?? []).map((review) => review.property_id))];
+  const { data: properties } = propertyIds.length
+    ? await supabase.from("properties").select("id,name,slug").in("id", propertyIds)
+    : { data: [] };
+
+  const reviewMap = new Map((reviews ?? []).map((review) => [review.id, review]));
+  const propertyMap = new Map((properties ?? []).map((property) => [property.id, property]));
+
+  return reports.map((report) => {
+    const review = reviewMap.get(report.review_id) ?? null;
+    return {
+      ...report,
+      review: review
+        ? {
+            id: review.id,
+            reviewer_name: review.reviewer_name,
+            rating: review.rating,
+            title: review.title,
+            comment: review.comment,
+            status: review.status,
+          }
+        : null,
+      property: review ? propertyMap.get(review.property_id) ?? null : null,
+    };
+  });
 }
