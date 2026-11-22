@@ -92,7 +92,8 @@ export function CheckoutButton({
             setError(result.message ?? "Payment verification failed.");
             return;
           }
-          router.push("/dashboard/subscription?payment=success");
+          router.push("/dashboard/subscription");
+          router.refresh();
         },
       });
       razorpay.open();

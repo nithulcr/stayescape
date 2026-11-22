@@ -1,9 +1,17 @@
 import Link from "next/link";
 import { setUserRoleAction, setUserStatusAction } from "@/app/admin/actions";
+import {
+  PremiumSubscriptionManager,
+  type ManageableAdminUser,
+} from "@/components/admin/premium-subscription-manager";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusPill } from "@/components/ui/status-pill";
 import { getAllUsers } from "@/lib/data/admin";
 import { getAuthContext, isSuperAdminRole } from "@/lib/auth/guards";
+import {
+  getAdminPlanLabel,
+  isActivePremiumSubscription,
+} from "@/lib/subscriptions/admin-grants";
 import { formatDate } from "@/lib/utils";
 
 const roleOptions = [
@@ -22,6 +30,37 @@ export default async function AdminUsersPage({
   const [users, context] = await Promise.all([getAllUsers({ q, role, status }), getAuthContext()]);
   const canManageRoles = isSuperAdminRole(context?.profile?.role);
   const viewerId = context?.user.id;
+
+  const userViews = users.map((user) => {
+    const hasActivePremium = isActivePremiumSubscription({
+      status: user.subscription_status ?? "",
+      planCode: user.plan_code,
+      expiresAt: user.expires_at,
+    });
+    return {
+      ...user,
+      hasActivePremium,
+      planLabel: getAdminPlanLabel(
+        user.plan_name,
+        hasActivePremium ? user.subscription_source : null,
+        hasActivePremium,
+      ),
+      expiresAtText: user.expires_at ? formatDate(user.expires_at) : null,
+    };
+  });
+  const manageableUsers: ManageableAdminUser[] = userViews
+    .filter((user) => user.role !== "super_admin" && user.account_status === "active")
+    .map((user) => ({
+      id: user.id,
+      name: user.full_name ?? "Unnamed user",
+      email: user.email,
+      planLabel: user.planLabel,
+      expiresAt: user.expiresAtText,
+      canGrant: !user.hasActivePremium,
+      canExtend: user.plan_code === "premium",
+      canRevoke: user.hasActivePremium,
+    }));
+  const manageableUserMap = new Map(manageableUsers.map((user) => [user.id, user]));
 
   return (
     <>
@@ -86,7 +125,7 @@ export default async function AdminUsersPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-forest/8">
-              {users.map((user) => {
+              {userViews.map((user) => {
                 const isSelf = user.id === viewerId;
                 const isPrivileged = user.role === "admin" || user.role === "super_admin";
                 const statusLocked = isSelf || (isPrivileged && !canManageRoles);
@@ -105,7 +144,10 @@ export default async function AdminUsersPage({
                       <StatusPill status={user.account_status} />
                     </td>
                     <td className="px-5 py-4 text-forest-deep">{user.property_count}</td>
-                    <td className="px-5 py-4 text-xs text-muted">{user.plan_name ?? "—"}</td>
+                    <td className="px-5 py-4 text-xs text-muted">
+                      <p>{user.planLabel}</p>
+                      {user.expiresAtText ? <p className="mt-0.5">Expires {user.expiresAtText}</p> : null}
+                    </td>
                     <td className="px-5 py-4 text-xs text-muted">{formatDate(user.created_at)}</td>
                     <td className="px-5 py-4">
                       <div className="flex flex-wrap gap-2">
@@ -140,6 +182,9 @@ export default async function AdminUsersPage({
                             </button>
                           </form>
                         )}
+                        {canManageRoles && manageableUserMap.has(user.id) ? (
+                          <PremiumSubscriptionManager user={manageableUserMap.get(user.id)!} />
+                        ) : null}
                         {statusLocked && !canManageRoles && isPrivileged && (
                           <span className="text-xs text-muted">Super admin only</span>
                         )}

@@ -1,10 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthContext } from "@/lib/auth/guards";
 import { getAdminClient } from "@/lib/supabase/admin";
-import { getPlanPriceForBillingCycle } from "@/lib/plans/billing-cycle";
 import { getPlans } from "@/lib/plans/limits";
 import { getRazorpay, razorpayConfigured } from "@/lib/payments/razorpay";
-import { billingCycleSchema } from "@/lib/validations";
+import { preparePremiumOrder } from "@/lib/payments/order-request";
 
 export async function POST(request: NextRequest) {
   const context = await getAuthContext();
@@ -28,22 +27,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = (await request.json().catch(() => ({}))) as { billingCycle?: string };
-  const parsedCycle = billingCycleSchema.safeParse(body.billingCycle);
-  if (!parsedCycle.success) {
-    return NextResponse.json({ error: "Choose a valid billing cycle." }, { status: 400 });
-  }
-  const billingCycle = parsedCycle.data;
-
-  const plans = await getPlans();
-  const premium = plans.find((plan) => plan.code === "premium" && plan.is_active);
-  if (!premium) {
-    return NextResponse.json({ error: "Premium plan is not available yet." }, { status: 503 });
-  }
-
-  const amount = Math.round(getPlanPriceForBillingCycle(premium, billingCycle) * 100);
-  if (amount <= 0) {
-    return NextResponse.json({ error: "Plan price is not configured." }, { status: 503 });
+  const body = (await request.json().catch(() => ({}))) as { billingCycle?: unknown };
+  const prepared = preparePremiumOrder({
+    userId: context.user.id,
+    billingCycle: body.billingCycle,
+    plans: await getPlans(),
+    role: context.profile?.role,
+    accountStatus: context.profile?.account_status,
+  });
+  if (!prepared.ok) {
+    return NextResponse.json({ error: prepared.message }, { status: prepared.status });
   }
 
   const razorpay = getRazorpay();
@@ -51,23 +44,28 @@ export async function POST(request: NextRequest) {
 
   try {
     const order = await razorpay.orders.create({
-      amount,
-      currency: "INR",
+      amount: prepared.amount,
+      currency: prepared.currency,
       receipt: `stayscape_${crypto.randomUUID().slice(0, 12)}`,
       notes: {
-        user_id: context.user.id,
-        plan_code: "premium",
-        billing_cycle: billingCycle,
+        user_id: prepared.userId,
+        plan_code: prepared.plan.code,
+        billing_cycle: prepared.billingCycle,
       },
     });
 
+    const orderNotes = order.notes as Record<string, unknown> | undefined;
+    if (orderNotes?.user_id && orderNotes.user_id !== prepared.userId) {
+      return NextResponse.json({ error: "Could not create a payment order." }, { status: 502 });
+    }
+
     const { error } = await admin.from("payments").insert({
-      user_id: context.user.id,
-      plan_id: premium.id,
+      user_id: prepared.userId,
+      plan_id: prepared.plan.id,
       razorpay_order_id: order.id,
-      amount,
-      currency: "INR",
-      billing_cycle: billingCycle,
+      amount: prepared.amount,
+      currency: prepared.currency,
+      billing_cycle: prepared.billingCycle,
       status: "pending",
     });
     if (error) {
@@ -77,11 +75,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       orderId: order.id,
-      amount,
-      currency: "INR",
+      amount: prepared.amount,
+      currency: prepared.currency,
       keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      planName: premium.name,
-      billingCycle,
+      planName: prepared.plan.name,
+      billingCycle: prepared.billingCycle,
     });
   } catch {
     return NextResponse.json({ error: "Could not create a Razorpay order." }, { status: 502 });

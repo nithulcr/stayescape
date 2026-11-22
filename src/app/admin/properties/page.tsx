@@ -209,7 +209,7 @@ export default async function AdminPropertiesPage({
                         </form>
                         <form
                           action={setPropertyStatusAction}
-                          className="grid gap-2"
+                          className="flex items-end gap-2"
                         >
                           <input
                             type="hidden"

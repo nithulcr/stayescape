@@ -1,11 +1,11 @@
 import "server-only";
 
-import { createHmac, timingSafeEqual } from "node:crypto";
 import Razorpay from "razorpay";
 import { revalidatePath } from "next/cache";
-import { addBillingCycleMonths } from "@/lib/plans/billing-cycle";
 import { getAdminClient } from "@/lib/supabase/admin";
-import type { PaymentRow, PlanRow, SubscriptionRow } from "@/types/database.types";
+import { verifyPaymentSignature as verifySignature, verifyWebhookSignature as verifyWebhook } from "@/lib/payments/signatures";
+import type { RazorpayPaymentSnapshot } from "@/lib/payments/payment-check";
+import type { PaymentRow, PlanRow } from "@/types/database.types";
 
 const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
 const keySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -18,109 +18,104 @@ export function getRazorpay() {
   return new Razorpay({ key_id: keyId, key_secret: keySecret });
 }
 
-function matches(expected: string, received: string) {
-  const a = Buffer.from(expected);
-  const b = Buffer.from(received);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
-
 export function verifyPaymentSignature(orderId: string, paymentId: string, signature: string) {
-  if (!keySecret) return false;
-  const expected = createHmac("sha256", keySecret)
-    .update(`${orderId}|${paymentId}`)
-    .digest("hex");
-  return matches(expected, signature);
+  return keySecret ? verifySignature(keySecret, orderId, paymentId, signature) : false;
 }
 
 export function verifyWebhookSignature(payload: string, signature: string) {
-  if (!webhookSecret) return false;
-  const expected = createHmac("sha256", webhookSecret).update(payload).digest("hex");
-  return matches(expected, signature);
+  return webhookSecret ? verifyWebhook(webhookSecret, payload, signature) : false;
 }
 
+export async function getPaymentByOrderId(orderId: string) {
+  const admin = getAdminClient();
+  if (!admin) return null;
+
+  const { data } = await admin
+    .from("payments")
+    .select("*, plan:plans(*)")
+    .eq("razorpay_order_id", orderId)
+    .maybeSingle();
+
+  return (data as (PaymentRow & { plan: PlanRow | null }) | null) ?? null;
+}
+
+export async function fetchRazorpayPayment(paymentId: string): Promise<RazorpayPaymentSnapshot | null> {
+  const razorpay = getRazorpay();
+  if (!razorpay) return null;
+
+  try {
+    const payment = await razorpay.payments.fetch(paymentId);
+    return {
+      id: payment.id,
+      order_id: payment.order_id,
+      amount: payment.amount,
+      currency: payment.currency,
+      status: payment.status,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function revalidatePaymentPaths() {
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/subscription");
+  revalidatePath("/admin/payments");
+  revalidatePath("/admin/subscriptions");
+}
+
+export type PaymentActivationResult = {
+  ok: boolean;
+  message: string;
+  subscription_id?: string | null;
+  expires_at?: string | null;
+};
+
 export async function activatePaidSubscription(input: {
-  orderId: string;
   paymentId: string;
+  razorpayPaymentId: string;
+  durationMonths: number;
   signature?: string | null;
-  trusted?: boolean;
-}) {
+  eventId?: string | null;
+}): Promise<PaymentActivationResult> {
   const admin = getAdminClient();
   if (!admin) return { ok: false, message: "Service role key is not configured." };
 
-  const { data: paymentData } = await admin
-    .from("payments")
-    .select("*, plan:plans(*)")
-    .eq("razorpay_order_id", input.orderId)
-    .maybeSingle();
+  const { data, error } = await admin.rpc("activate_paid_subscription", {
+    p_payment_id: input.paymentId,
+    p_razorpay_payment_id: input.razorpayPaymentId,
+    p_duration_months: input.durationMonths,
+    p_signature: input.signature ?? null,
+    p_event_id: input.eventId ?? null,
+  });
 
-  const payment = paymentData as
-    | (PaymentRow & { plan: PlanRow | null })
-    | null;
-  if (!payment) return { ok: false, message: "Unknown payment order." };
-  if (!payment.plan || payment.plan.code !== "premium") {
-    return { ok: false, message: "Plan not found for this payment." };
-  }
-  if (!input.trusted && !verifyPaymentSignature(input.orderId, input.paymentId, input.signature ?? "")) {
-    return { ok: false, message: "Invalid payment signature." };
-  }
+  if (error || !data) return { ok: false, message: "Could not activate the subscription." };
 
-  if (payment.status === "success") {
-    return { ok: true, message: "Payment already recorded." };
-  }
-
-  let expiresAt = addBillingCycleMonths(new Date(), payment.billing_cycle);
-
-  const { data: current } = await admin
-    .from("subscriptions")
-    .select("*")
-    .eq("owner_id", payment.user_id)
-    .eq("status", "active")
-    .maybeSingle();
-
-  const currentSubscription = current as SubscriptionRow | null;
-  if (currentSubscription?.expires_at && new Date(currentSubscription.expires_at) > new Date()) {
-    expiresAt = addBillingCycleMonths(new Date(currentSubscription.expires_at), payment.billing_cycle);
-  }
-
-  if (currentSubscription) {
-    const { error: subscriptionError } = await admin
-      .from("subscriptions")
-      .update({
-        plan_id: payment.plan_id,
-        status: "active",
-        billing_cycle: payment.billing_cycle,
-        starts_at: new Date().toISOString(),
-        expires_at: expiresAt.toISOString(),
-        auto_renew: false,
-      })
-      .eq("id", currentSubscription.id);
-    if (subscriptionError) return { ok: false, message: subscriptionError.message };
-  } else {
-    const { error: subscriptionError } = await admin.from("subscriptions").insert({
-      owner_id: payment.user_id,
-      plan_id: payment.plan_id,
-      status: "active",
-      billing_cycle: payment.billing_cycle,
-      starts_at: new Date().toISOString(),
-      expires_at: expiresAt.toISOString(),
-      auto_renew: false,
-    });
-    if (subscriptionError) return { ok: false, message: subscriptionError.message };
-  }
-
-  const { error: paymentError } = await admin
-    .from("payments")
-    .update({
-      razorpay_payment_id: input.paymentId,
-      razorpay_signature: input.signature ?? null,
-      status: "success",
-    })
-    .eq("id", payment.id);
-  if (paymentError) return { ok: false, message: paymentError.message };
-
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/subscription");
-  revalidatePath("/admin/subscriptions");
-  return { ok: true, message: "Subscription activated." };
+  const result = data as PaymentActivationResult;
+  if (result.ok) revalidatePaymentPaths();
+  return result;
 }
+
+export async function recordPaymentStatus(input: {
+  orderId: string;
+  status: "failed" | "refunded";
+  eventId?: string | null;
+  razorpayPaymentId?: string | null;
+}): Promise<PaymentActivationResult> {
+  const admin = getAdminClient();
+  if (!admin) return { ok: false, message: "Service role key is not configured." };
+
+  const { data, error } = await admin.rpc("record_payment_status", {
+    p_order_id: input.orderId,
+    p_status: input.status,
+    p_event_id: input.eventId ?? null,
+    p_razorpay_payment_id: input.razorpayPaymentId ?? null,
+  });
+
+  if (error || !data) return { ok: false, message: "Could not record the payment status." };
+
+  const result = data as PaymentActivationResult;
+  if (result.ok) revalidatePaymentPaths();
+  return result;
+}
+

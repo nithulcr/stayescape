@@ -70,13 +70,13 @@ export function PropertyCard({ property }: { property: PropertyListItem }) {
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between p-3">
           <div className="flex flex-wrap gap-1.5">
             {isTopRated && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-ivory/95 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-wider text-forest backdrop-blur">
-                <Star size={10} fill="currentColor" className="text-gold" /> Top rated
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#F1FBF4] border border-[#F1FBF4 text-gold px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-wider  backdrop-blur">
+                <Star size={10} fill="#ffd700" stroke="#ffd700" /> Top rated
               </span>
             )}
             {!isTopRated && property.is_featured && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-ivory/95 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-wider text-forest backdrop-blur">
-                <Star size={10} fill="currentColor" /> Featured
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#F1FBF4] border border-[#F1FBF4] text-gold px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-wider  backdrop-blur">
+                <Star size={10} fill="#ffd700"  /> Featured
               </span>
             )}
           </div>
@@ -147,8 +147,8 @@ export function PropertyCard({ property }: { property: PropertyListItem }) {
           </span>
         </div>
 
-        <h3 className="mt-2 font-serif text-xl leading-snug text-forest-deep">
-          <Link href={`/properties/${property.slug}`} className="transition-colors hover:text-forest-soft">
+        <h3 className="mt-2 font-serif text-xl text-forest-deep">
+          <Link href={`/properties/${property.slug}`} className="transition-colors hover:text-forest-soft ">
             {property.name}
           </Link>
         </h3>

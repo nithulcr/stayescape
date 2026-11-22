@@ -18,6 +18,66 @@ export async function savePropertyAction(
   return persistProperty({ formData, actorId: user.id });
 }
 
+export async function selectPublishedPropertyAction(
+  _previous: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const { user } = await requireOwner();
+  const propertyId = parseOptional(formData.get("propertyId"));
+  if (!propertyId) return { ok: false, message: "Choose a property to publish." };
+
+  const supabase = await getServerClient();
+  if (!supabase) return { ok: false, message: "Property service is unavailable." };
+
+  const { data, error } = await supabase.rpc("select_expiry_property", {
+    p_owner_id: user.id,
+    p_property_id: propertyId,
+  });
+  const result = data as { ok?: boolean; message?: string } | null;
+  if (error || !result?.ok) {
+    return { ok: false, message: result?.message ?? "Unable to publish the selected property." };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/properties");
+  revalidatePath("/dashboard/subscription");
+  revalidatePath("/properties");
+  return { ok: true, message: "Published property updated." };
+}
+
+export async function setPropertyPublicationAction(
+  _previous: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireOwner();
+  const propertyId = parseOptional(formData.get("propertyId"));
+  const publish = parseOptional(formData.get("publish"));
+  if (!propertyId || (publish !== "true" && publish !== "false")) {
+    return { ok: false, message: "Invalid publication request." };
+  }
+
+  const supabase = await getServerClient();
+  if (!supabase) return { ok: false, message: "Property service is unavailable." };
+
+  const { data, error } = await supabase.rpc("set_property_published", {
+    p_property_id: propertyId,
+    p_published: publish === "true",
+  });
+  const result = data as { ok?: boolean; message?: string } | null;
+  if (error || !result?.ok) {
+    return { ok: false, message: result?.message ?? "Unable to update publication status." };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/properties");
+  revalidatePath("/dashboard/subscription");
+  revalidatePath("/properties");
+  return {
+    ok: true,
+    message: publish === "true" ? "Property published." : "Property unpublished.",
+  };
+}
+
 export async function deletePropertyAction(formData: FormData) {
   const { user } = await requireOwner();
   const propertyId = parseOptional(formData.get("propertyId"));

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Eye, Pencil, Trash2 } from "lucide-react";
 import { deletePropertyAction } from "@/app/dashboard/properties/actions";
+import { PropertyPublicationControls } from "@/components/dashboard/property-publication";
 import { StatusPill } from "@/components/ui/status-pill";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireOwner } from "@/lib/auth/guards";
@@ -18,6 +19,14 @@ export default async function OwnerPropertiesPage() {
     getPlanContextForUser(user.id),
   ]);
   const canAddProperty = canCreateProperty(properties.length, plan);
+  const approvedProperties = properties
+    .filter((property) => property.status === "approved")
+    .map((property) => ({
+      id: property.id,
+      name: property.name,
+      isPublished: property.is_published,
+      publishAfterRenewal: property.publish_after_renewal,
+    }));
 
   return (
     <>
@@ -30,6 +39,14 @@ export default async function OwnerPropertiesPage() {
               ? `${properties.length} properties · ${plan.limits.planName}`
               : `${properties.length} of ${plan.limits.maxProperties} properties used on your ${plan.limits.planName} plan.`}
           </p>
+          <p className="mt-2 text-xs text-muted">
+            {plan.publishedCount} of {plan.publishedLimit} approved properties published.
+          </p>
+          {plan.status === "expired" && (
+            <p className="mt-2 text-xs text-rose-700">
+              Premium has expired. Keep one published property or upgrade to restore your previous listings.
+            </p>
+          )}
           {!canAddProperty && (
             <p className="mt-2 text-xs text-gold">
               You have reached your plan limit. Upgrade to add more properties.
@@ -44,6 +61,11 @@ export default async function OwnerPropertiesPage() {
           </Link>
         )}
       </div>
+
+      <PropertyPublicationControls
+        properties={approvedProperties}
+        needsSelection={plan.needsPropertySelection}
+      />
 
       {properties.length ? (
         <div className="mt-8 grid gap-5">
@@ -62,6 +84,11 @@ export default async function OwnerPropertiesPage() {
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-serif text-xl text-forest-deep">{property.name}</h2>
                   <StatusPill status={property.status} />
+                  {property.status === "approved" && (
+                    <StatusPill status={property.is_published ? "published" : "unpublished"}>
+                      {property.is_published ? "Published" : "Unpublished"}
+                    </StatusPill>
+                  )}
                   {property.is_featured && <StatusPill status="premium">Featured</StatusPill>}
                 </div>
                 <p className="mt-1 text-xs text-muted">

@@ -16,6 +16,7 @@ const styles: Record<string, string> = {
   suspended: "bg-rose-50 text-rose-800 ring-rose-200",
   expired: "bg-stone-100 text-stone-700 ring-stone-200",
   draft: "bg-stone-100 text-stone-700 ring-stone-200",
+  unpublished: "bg-stone-100 text-stone-700 ring-stone-200",
   free: "bg-stone-100 text-stone-700 ring-stone-200",
   premium: "bg-[#f4ead7] text-[#8a6a30] ring-[#e4d3b3]",
   user: "bg-stone-100 text-stone-700 ring-stone-200",

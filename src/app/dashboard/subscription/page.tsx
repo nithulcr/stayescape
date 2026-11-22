@@ -1,25 +1,26 @@
-import { CheckCircle2, Crown } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, CheckCircle2, Crown } from "lucide-react";
 import { CheckoutButton } from "@/components/payments/checkout-button";
 import { StatusPill } from "@/components/ui/status-pill";
 import { requireOwner } from "@/lib/auth/guards";
-import { getOwnerPayments, getOwnerSubscription } from "@/lib/data/owner";
+import { getOwnerPayments } from "@/lib/data/owner";
 import { BILLING_CYCLES, getBillingCycleLabel, getPlanPriceForBillingCycle } from "@/lib/plans/billing-cycle";
 import { getPlanContextForUser, getPlanLimits } from "@/lib/plans/limits";
 import { formatDate, formatINR } from "@/lib/utils";
 
-export default async function SubscriptionPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ payment?: string }>;
-}) {
-  const { payment } = await searchParams;
+export default async function SubscriptionPage() {
   const { user } = await requireOwner();
-  const [plan, subscription, payments, planLimits] = await Promise.all([
+  const [plan, payments, planLimits] = await Promise.all([
     getPlanContextForUser(user.id),
-    getOwnerSubscription(user.id),
     getOwnerPayments(user.id),
     getPlanLimits(),
   ]);
+  const verifiedPayment = Boolean(
+    plan.subscriptionId &&
+      payments.some(
+        (item) => item.status === "success" && item.subscription_id === plan.subscriptionId,
+      ),
+  );
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -31,10 +32,26 @@ export default async function SubscriptionPage({
           <CheckCircle2 size={16} /> All features are enabled by your administrator role. No subscription is required.
         </p>
       )}
-      {payment === "success" && plan.entitlement !== "admin_bypass" && (
+      {verifiedPayment && plan.entitlement === "paid" && (
         <p className="mt-6 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           <CheckCircle2 size={16} /> Payment verified and Premium activated.
         </p>
+      )}
+      {plan.status === "expired" && (
+        <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="flex items-center gap-2 font-semibold">
+            <AlertTriangle size={16} /> Your Premium plan has expired.
+          </p>
+          <p className="mt-1 text-xs">
+            Premium features are paused. {plan.publishedCount} of your approved properties are
+            published; the plan limit is {plan.publishedLimit}.
+          </p>
+          {plan.needsPropertySelection ? (
+            <Link href="/dashboard/properties" className="mt-2 inline-block text-xs font-semibold underline">
+              Choose which property stays published
+            </Link>
+          ) : null}
+        </div>
       )}
 
       <section className="surface-card mt-8 p-7">
@@ -49,15 +66,23 @@ export default async function SubscriptionPage({
                 ? "Unlimited properties · Unlimited images per property"
                 : `${plan.limits.maxProperties} properties · ${plan.limits.maxImagesPerProperty} images per property`}
             </p>
+            {plan.entitlement !== "admin_bypass" && (
+              <p className="mt-1 text-xs text-muted">
+                {plan.publishedCount} of {plan.publishedLimit} approved properties published.
+              </p>
+            )}
           </div>
           {plan.entitlement === "admin_bypass" ? (
             <StatusPill status="super_admin">Unlimited access</StatusPill>
           ) : (
-            <StatusPill status={subscription?.status ?? "free"} />
+            <StatusPill status={plan.status} />
           )}
         </div>
-        {subscription?.expires_at && plan.entitlement !== "admin_bypass" && (
-          <p className="mt-4 text-sm text-muted">Valid until {formatDate(subscription.expires_at)}</p>
+        {plan.expiresAt && plan.entitlement !== "admin_bypass" && (
+          <p className="mt-4 text-sm text-muted">
+            {plan.isExpired ? "Expired on" : "Valid until"} {formatDate(plan.expiresAt)}
+            {plan.isPremium && plan.daysRemaining !== null ? ` · ${plan.daysRemaining} days remaining` : ""}
+          </p>
         )}
         {!plan.isPremium && (
           <div className="mt-7 grid gap-3 sm:grid-cols-3">

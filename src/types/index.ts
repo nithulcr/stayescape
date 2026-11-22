@@ -39,6 +39,8 @@ export type PropertyListItem = {
   short_description: string | null;
   status: string;
   is_featured: boolean;
+  is_published: boolean;
+  publish_after_renewal: boolean;
   plan_type: string;
   price_per_night: number | null;
   city: string | null;
@@ -92,6 +94,7 @@ export type PlanLimits = {
 };
 
 export type EntitlementSource = "free" | "paid" | "admin_bypass";
+export type SubscriptionLifecycleStatus = "free" | "active" | "expired" | "cancelled";
 
 export type PlanContext = {
   limits: PlanLimits;
@@ -102,6 +105,37 @@ export type PlanContext = {
   subscriptionId: string | null;
   entitlement: EntitlementSource;
   isUnlimited: boolean;
+  status: SubscriptionLifecycleStatus;
+  daysRemaining: number | null;
+  publishedCount: number;
+  publishedLimit: number;
+  needsPropertySelection: boolean;
+};
+
+export type OwnerEntitlement = {
+  owner_id: string;
+  status: SubscriptionLifecycleStatus;
+  plan_code: "free" | "premium";
+  plan_name: string;
+  has_premium: boolean;
+  is_active: boolean;
+  is_expired: boolean;
+  is_unlimited: boolean;
+  entitlement: EntitlementSource;
+  subscription_id: string | null;
+  expires_at: string | null;
+  days_remaining: number | null;
+  billing_cycle: BillingCycle | null;
+  max_properties: number;
+  published_limit: number;
+  published_count: number;
+  needs_property_selection: boolean;
+  max_images_per_property: number;
+  price_monthly: number;
+  price_six_month: number;
+  price_yearly: number;
+  features: string[];
+  expired_listing_visibility: "keep_visible" | "hide";
 };
 
 export type DistrictSummary = {

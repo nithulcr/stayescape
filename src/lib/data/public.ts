@@ -1,5 +1,6 @@
 import "server-only";
 
+import { hasPropertyPublicationColumn } from "@/lib/supabase/schema";
 import { getServerClient } from "@/lib/supabase/server";
 import { districtOptions, isKeralaDistrict, keralaStateName, resolveDistrict } from "@/lib/config";
 import { fallbackPropertyImage } from "@/lib/media";
@@ -144,6 +145,8 @@ function toListItem(
     short_description: property.short_description,
     status: property.status,
     is_featured: property.is_featured,
+    is_published: property.is_published ?? true,
+    publish_after_renewal: property.publish_after_renewal ?? false,
     plan_type: property.plan_type,
     price_per_night: property.price_per_night ? Number(property.price_per_night) : null,
     city: destination?.name ?? null,
@@ -173,8 +176,15 @@ export async function getPublishedProperties(
   if (!supabase) return { items: [], total: 0 };
 
   try {
-    const lookups = await getLookups(supabase);
-    let query = supabase.from("properties").select("*", { count: "exact" }).eq("status", "approved");
+    const [lookups, publicationReady] = await Promise.all([
+      getLookups(supabase),
+      hasPropertyPublicationColumn(supabase),
+    ]);
+    let query = supabase
+      .from("properties")
+      .select("*", { count: "exact" })
+      .eq("status", "approved");
+    if (publicationReady) query = query.eq("is_published", true);
 
     const search = sanitizeSearch(filters.q);
     if (search) {
@@ -315,11 +325,14 @@ export async function getTopRatedProperties(limit = 6, minimumReviews = 3): Prom
     if (!qualified.length) return getFeaturedProperties(limit);
 
     const propertyIds = qualified.map((stat) => stat.property_id);
-    const { data: propertyData } = await supabase
+    const publicationReady = await hasPropertyPublicationColumn(supabase);
+    let propertyQuery = supabase
       .from("properties")
       .select("*")
       .in("id", propertyIds)
       .eq("status", "approved");
+    if (publicationReady) propertyQuery = propertyQuery.eq("is_published", true);
+    const { data: propertyData } = await propertyQuery;
     const propertyMap = new Map(
       ((propertyData ?? []) as PropertyRow[]).map((property) => [property.id, property]),
     );
@@ -400,12 +413,14 @@ export async function getPropertyBySlug(
   if (!supabase) return null;
 
   try {
-    const { data } = await supabase
+    const publicationReady = await hasPropertyPublicationColumn(supabase);
+    let propertyQuery = supabase
       .from("properties")
       .select("*")
       .eq("slug", slug)
-      .eq("status", "approved")
-      .maybeSingle();
+      .eq("status", "approved");
+    if (publicationReady) propertyQuery = propertyQuery.eq("is_published", true);
+    const { data } = await propertyQuery.maybeSingle();
     const property = data as PropertyRow | null;
     if (!property) return null;
 
@@ -534,11 +549,13 @@ export async function getDistrictSummaries(): Promise<DistrictSummary[]> {
   const supabase = await getServerClient();
   if (!supabase) return [];
 
+  const publicationReady = await hasPropertyPublicationColumn(supabase);
+  const propertiesQuery = supabase
+    .from("properties")
+    .select("district,destination_id")
+    .eq("status", "approved");
   const [properties, destinations] = await Promise.all([
-    supabase
-      .from("properties")
-      .select("district,destination_id")
-      .eq("status", "approved"),
+    publicationReady ? propertiesQuery.eq("is_published", true) : propertiesQuery,
     getDestinations(),
   ]);
 

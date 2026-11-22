@@ -1,8 +1,16 @@
 import "server-only";
 
+import { hasPropertyPublicationColumn } from "@/lib/supabase/schema";
 import { getServerClient } from "@/lib/supabase/server";
+import { getOwnerEntitlement } from "@/lib/subscriptions/entitlement";
+import {
+  hasActivePremium,
+  needsPropertySelection,
+  publishedLimitFor,
+  resolveSubscriptionStatus,
+} from "@/lib/subscriptions/expiry";
 import type { PlanRow, SubscriptionRow } from "@/types/database.types";
-import type { PlanContext, PlanLimits } from "@/types";
+import type { OwnerEntitlement, PlanContext, PlanLimits } from "@/types";
 import {
   FALLBACK_FREE_LIMITS,
   FALLBACK_PREMIUM_LIMITS,
@@ -31,7 +39,27 @@ export function toPlanLimits(plan: PlanRow | null, fallback: PlanLimits): PlanLi
   };
 }
 
-function freeContext(limits: PlanLimits): PlanContext {
+function limitsFromEntitlement(
+  entitlement: OwnerEntitlement,
+  fallbacks: { free: PlanLimits; premium: PlanLimits },
+): PlanLimits {
+  const base = entitlement.plan_code === "premium" ? fallbacks.premium : fallbacks.free;
+  return {
+    ...base,
+    planCode: entitlement.plan_code,
+    planName: entitlement.plan_name,
+    maxProperties: entitlement.max_properties,
+    maxImagesPerProperty: entitlement.max_images_per_property || base.maxImagesPerProperty,
+    priceMonthly: Number(entitlement.price_monthly),
+    priceSixMonth: Number(entitlement.price_six_month),
+    priceYearly: Number(entitlement.price_yearly),
+    expiredListingVisibility: entitlement.expired_listing_visibility,
+    features: entitlement.features,
+    isActive: true,
+  };
+}
+
+function freeContext(limits: PlanLimits, publishedCount = 0): PlanContext {
   return {
     limits,
     isPremium: false,
@@ -41,6 +69,11 @@ function freeContext(limits: PlanLimits): PlanContext {
     subscriptionId: null,
     entitlement: "free",
     isUnlimited: false,
+    status: "free",
+    daysRemaining: null,
+    publishedCount,
+    publishedLimit: limits.maxProperties,
+    needsPropertySelection: publishedCount > limits.maxProperties,
   };
 }
 
@@ -67,6 +100,11 @@ export function superAdminContext(premium: PlanLimits): PlanContext {
     subscriptionId: null,
     entitlement: "admin_bypass",
     isUnlimited: true,
+    status: "active",
+    daysRemaining: null,
+    publishedCount: 0,
+    publishedLimit: SUPER_ADMIN_UNLIMITED,
+    needsPropertySelection: false,
   };
 }
 
@@ -94,16 +132,50 @@ export async function getPlanLimits(): Promise<{
   };
 }
 
+async function getPublishedPropertyCount(
+  supabase: NonNullable<Awaited<ReturnType<typeof getServerClient>>>,
+  userId: string,
+): Promise<number> {
+  const publicationReady = await hasPropertyPublicationColumn(supabase);
+  let query = supabase
+    .from("properties")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", userId)
+    .eq("status", "approved");
+  if (publicationReady) query = query.eq("is_published", true);
+  const { count } = await query;
+  return count ?? 0;
+}
+
 export async function getPlanContextForUser(
   userId: string | null | undefined,
 ): Promise<PlanContext> {
   const { free, premium } = await getPlanLimits();
   if (!userId) return freeContext(free);
 
+  const entitlement = await getOwnerEntitlement(userId);
+  if (entitlement) {
+    return {
+      limits: limitsFromEntitlement(entitlement, { free, premium }),
+      isPremium: entitlement.has_premium,
+      isExpired: entitlement.is_expired,
+      expiresAt: entitlement.expires_at,
+      billingCycle: entitlement.billing_cycle,
+      subscriptionId: entitlement.subscription_id,
+      entitlement: entitlement.entitlement,
+      isUnlimited: entitlement.is_unlimited,
+      status: entitlement.status,
+      daysRemaining: entitlement.days_remaining,
+      publishedCount: entitlement.published_count,
+      publishedLimit: entitlement.published_limit,
+      needsPropertySelection: entitlement.needs_property_selection,
+    };
+  }
+
   const supabase = await getServerClient();
   if (!supabase) return freeContext(free);
 
-  const [profileResult, subscriptionResult] = await Promise.all([
+  const [profileResult, subscriptionResult, publishedResult] = await Promise.all([
     supabase.from("profiles").select("role").eq("id", userId).maybeSingle(),
     supabase
       .from("subscriptions")
@@ -113,30 +185,63 @@ export async function getPlanContextForUser(
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    getPublishedPropertyCount(supabase, userId),
   ]);
 
   if (profileResult.data?.role === "super_admin") {
-    return superAdminContext(premium);
+    return { ...superAdminContext(premium), publishedCount: publishedResult };
   }
 
   const subscription = subscriptionResult.data as
     | (SubscriptionRow & { plan: PlanRow | null })
     | null;
 
-  if (!subscription) return freeContext(free);
+  if (!subscription) return freeContext(free, publishedResult);
 
-  const expiresAt = subscription.expires_at;
-  const expired = !expiresAt || new Date(expiresAt).getTime() <= Date.now();
-  const isPremium = !expired && subscription.plan?.code === "premium";
+  const status = resolveSubscriptionStatus({
+    status: subscription.status,
+    expiresAt: subscription.expires_at,
+    planCode: subscription.plan?.code ?? "free",
+  });
+  const isPremium = hasActivePremium({
+    status: subscription.status,
+    expiresAt: subscription.expires_at,
+    planCode: subscription.plan?.code ?? "free",
+  });
+  const publishedLimit = publishedLimitFor({
+    isUnlimited: false,
+    isPremium,
+    freeLimit: free.maxProperties,
+    premiumLimit: premium.maxProperties,
+  });
+  const daysRemaining =
+    status === "active" && subscription.expires_at
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(subscription.expires_at).getTime() - Date.now()) / 86_400_000,
+          ),
+        )
+      : null;
 
   return {
     limits: isPremium ? toPlanLimits(subscription.plan, premium) : free,
     isPremium,
-    isExpired: expired && subscription.plan?.code === "premium",
-    expiresAt,
+    isExpired: status === "expired" && subscription.plan?.code === "premium",
+    expiresAt: subscription.expires_at,
     billingCycle: subscription.billing_cycle,
     subscriptionId: subscription.id,
     entitlement: isPremium ? "paid" : "free",
     isUnlimited: false,
+    status,
+    daysRemaining,
+    publishedCount: publishedResult,
+    publishedLimit,
+    needsPropertySelection: needsPropertySelection({
+      isUnlimited: false,
+      isPremium,
+      publishedCount: publishedResult,
+      publishedLimit,
+    }),
   };
 }

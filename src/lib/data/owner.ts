@@ -108,6 +108,8 @@ export async function getOwnerProperties(userId: string): Promise<PropertyListIt
       short_description: property.short_description,
       status: property.status,
       is_featured: property.is_featured,
+      is_published: property.is_published ?? true,
+      publish_after_renewal: property.publish_after_renewal ?? false,
       plan_type: property.plan_type,
       price_per_night: property.price_per_night ? Number(property.price_per_night) : null,
       city: destination?.name ?? null,
@@ -164,7 +166,9 @@ export async function getOwnerStats(userId: string) {
   const enquiries = await getOwnerEnquiries(userId);
   return {
     total: properties.length,
-    published: properties.filter((property) => property.status === "approved").length,
+    published: properties.filter(
+      (property) => property.status === "approved" && (property.is_published ?? true),
+    ).length,
     pending: properties.filter((property) => property.status === "pending").length,
     rejected: properties.filter((property) => property.status === "rejected").length,
     enquiries: enquiries.length,

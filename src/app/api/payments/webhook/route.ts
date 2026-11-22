@@ -1,18 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { activatePaidSubscription, verifyWebhookSignature } from "@/lib/payments/razorpay";
+import { getBillingDurationMonths } from "@/lib/plans/billing-cycle";
+import {
+  checkRazorpayPayment,
+  isSupportedWebhookEvent,
+  parseWebhookEvent,
+} from "@/lib/payments/payment-check";
+import {
+  activatePaidSubscription,
+  fetchRazorpayPayment,
+  getPaymentByOrderId,
+  recordPaymentStatus,
+  verifyWebhookSignature,
+} from "@/lib/payments/razorpay";
 
-type WebhookPayload = {
-  event?: string;
-  payload?: {
-    payment?: {
-      entity?: {
-        id?: string;
-        order_id?: string;
-        status?: string;
-      };
-    };
-  };
-};
+const SUCCESS_EVENTS = new Set(["payment.captured", "order.paid"]);
 
 export async function POST(request: NextRequest) {
   const signature = request.headers.get("x-razorpay-signature") ?? "";
@@ -22,20 +23,70 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid webhook signature" }, { status: 400 });
   }
 
-  const event = JSON.parse(raw) as WebhookPayload;
-  const payment = event.payload?.payment?.entity;
-
-  const isCaptured = event.event === "payment.captured" && payment?.status === "captured";
-  const isPaidOrder = event.event === "order.paid";
-
-  if ((isCaptured || isPaidOrder) && payment?.id && payment.order_id) {
-    const result = await activatePaidSubscription({
-      orderId: payment.order_id,
-      paymentId: payment.id,
-      trusted: true,
-    });
-    if (!result.ok) return NextResponse.json(result, { status: 422 });
+  let payload: unknown;
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
   }
 
+  const event = parseWebhookEvent(payload);
+  if (!isSupportedWebhookEvent(event.eventType)) {
+    return NextResponse.json({ received: true, ignored: true });
+  }
+  if (event.eventType === "payment.failed" && event.status && event.status !== "failed") {
+    return NextResponse.json({ received: true, ignored: true });
+  }
+
+  let orderId = event.orderId;
+  if (!orderId && event.paymentId) {
+    const gatewayPayment = await fetchRazorpayPayment(event.paymentId);
+    if (gatewayPayment && typeof gatewayPayment.order_id === "string") {
+      orderId = gatewayPayment.order_id;
+    }
+  }
+  if (!orderId) return NextResponse.json({ received: true, ignored: true });
+
+  const payment = await getPaymentByOrderId(orderId);
+  if (!payment) return NextResponse.json({ received: true, ignored: true });
+
+  if (SUCCESS_EVENTS.has(event.eventType)) {
+    const razorpayPaymentId = event.paymentId ?? payment.razorpay_payment_id;
+    if (!razorpayPaymentId) return NextResponse.json({ received: true, ignored: true });
+    if (payment.razorpay_payment_id && payment.razorpay_payment_id !== razorpayPaymentId) {
+      return NextResponse.json({ error: "Payment id does not match this order." }, { status: 422 });
+    }
+
+    const gatewayPayment = await fetchRazorpayPayment(razorpayPaymentId);
+    if (!gatewayPayment) {
+      return NextResponse.json({ error: "Payment could not be verified." }, { status: 500 });
+    }
+
+    const matches = checkRazorpayPayment({
+      expectedOrderId: orderId,
+      expectedPaymentId: razorpayPaymentId,
+      expectedAmount: payment.amount,
+      expectedCurrency: payment.currency,
+      payment: gatewayPayment,
+    });
+    if (!matches.ok) return NextResponse.json({ error: matches.message }, { status: 422 });
+
+    const result = await activatePaidSubscription({
+      paymentId: payment.id,
+      razorpayPaymentId,
+      durationMonths: getBillingDurationMonths(payment.billing_cycle),
+      eventId: event.eventId,
+    });
+    if (!result.ok) return NextResponse.json(result, { status: 500 });
+    return NextResponse.json({ received: true, activated: result.ok });
+  }
+
+  const result = await recordPaymentStatus({
+    orderId,
+    status: event.eventType === "payment.failed" ? "failed" : "refunded",
+    eventId: event.eventId,
+    razorpayPaymentId: event.paymentId,
+  });
+  if (!result.ok) return NextResponse.json(result, { status: 500 });
   return NextResponse.json({ received: true });
 }

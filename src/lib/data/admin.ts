@@ -1,8 +1,10 @@
 import "server-only";
 
 import { getServerClient } from "@/lib/supabase/server";
+import { hasActivePremium } from "@/lib/subscriptions/expiry";
 import type {
   AmenityRow,
+  BillingCycle,
   CategoryRow,
   DestinationRow,
   EnquiryRow,
@@ -14,6 +16,7 @@ import type {
   ReviewReportRow,
   ReviewRow,
   SubscriptionRow,
+  SubscriptionSource,
 } from "@/types/database.types";
 
 type Client = NonNullable<Awaited<ReturnType<typeof getServerClient>>>;
@@ -25,7 +28,12 @@ async function getClient(): Promise<Client | null> {
 export type AdminUserSummary = ProfileRow & {
   property_count: number;
   plan_name: string | null;
+  plan_code: string | null;
   subscription_status: string | null;
+  subscription_id: string | null;
+  subscription_source: SubscriptionSource | null;
+  billing_cycle: BillingCycle | null;
+  expires_at: string | null;
 };
 
 export type AdminUserFilters = {
@@ -83,10 +91,12 @@ export async function getAdminStats() {
     plan: { code: string } | null;
   }[];
 
-  const activePremium = activeSubscriptions.filter(
-    (item) =>
-      item.plan?.code === "premium" &&
-      (item.expires_at === null || new Date(item.expires_at).getTime() > Date.now()),
+  const activePremium = activeSubscriptions.filter((item) =>
+    hasActivePremium({
+      status: item.status as "active" | "expired" | "cancelled",
+      expiresAt: item.expires_at,
+      planCode: item.plan?.code === "premium" ? "premium" : "free",
+    }),
   );
 
   const ownerMap = new Map(
@@ -139,8 +149,10 @@ export async function getAllUsers(filters: AdminUserFilters = {}): Promise<Admin
   const [profiles, properties, subscriptions, plans] = await Promise.all([
     query,
     supabase.from("properties").select("owner_id"),
-    supabase.from("subscriptions").select("owner_id,status,plan_id").eq("status", "active"),
-    supabase.from("plans").select("id,name"),
+    supabase
+      .from("subscriptions")
+      .select("id,owner_id,status,plan_id,billing_cycle,starts_at,expires_at,source"),
+    supabase.from("plans").select("id,name,code"),
   ]);
 
   const propertyCounts = new Map<string, number>();
@@ -149,26 +161,40 @@ export async function getAllUsers(filters: AdminUserFilters = {}): Promise<Admin
   }
 
   const planMap = new Map(
-    ((plans.data ?? []) as Pick<PlanRow, "id" | "name">[]).map((plan) => [plan.id, plan.name]),
+    ((plans.data ?? []) as Pick<PlanRow, "id" | "name" | "code">[]).map((plan) => [
+      plan.id,
+      { name: plan.name, code: plan.code },
+    ]),
   );
-  const subscriptionMap = new Map<
-    string,
-    Pick<SubscriptionRow, "owner_id" | "status" | "plan_id">
-  >();
-  for (const subscription of (subscriptions.data ?? []) as Pick<
+
+  type AdminUserSubscription = Pick<
     SubscriptionRow,
-    "owner_id" | "status" | "plan_id"
-  >[]) {
-    subscriptionMap.set(subscription.owner_id, subscription);
+    "id" | "owner_id" | "status" | "plan_id" | "billing_cycle" | "starts_at" | "expires_at" | "source"
+  >;
+  const isCurrent = (subscription: AdminUserSubscription) =>
+    subscription.status === "active" &&
+    (!subscription.expires_at || Date.parse(subscription.expires_at) > Date.now());
+  const subscriptionMap = new Map<string, AdminUserSubscription>();
+  for (const subscription of (subscriptions.data ?? []) as AdminUserSubscription[]) {
+    const current = subscriptionMap.get(subscription.owner_id);
+    if (!current || (isCurrent(subscription) && !isCurrent(current))) {
+      subscriptionMap.set(subscription.owner_id, subscription);
+    }
   }
 
   return ((profiles.data ?? []) as ProfileRow[]).map((profile) => {
     const subscription = subscriptionMap.get(profile.id);
+    const plan = subscription ? planMap.get(subscription.plan_id) : null;
     return {
       ...profile,
       property_count: propertyCounts.get(profile.id) ?? 0,
-      plan_name: subscription ? planMap.get(subscription.plan_id) ?? "—" : null,
+      plan_name: plan?.name ?? null,
+      plan_code: plan?.code ?? null,
       subscription_status: subscription?.status ?? null,
+      subscription_id: subscription?.id ?? null,
+      subscription_source: subscription?.source ?? null,
+      billing_cycle: subscription?.billing_cycle ?? null,
+      expires_at: subscription?.expires_at ?? null,
     };
   });
 }
@@ -331,6 +357,7 @@ export async function getAllSubscriptions() {
   return ((subscriptions.data ?? []) as SubscriptionRow[]).map((subscription) => ({
     ...subscription,
     plan_name: planMap.get(subscription.plan_id)?.name ?? "—",
+    plan_code: planMap.get(subscription.plan_id)?.code ?? null,
     owner_name: userMap.get(subscription.owner_id)?.full_name ?? "—",
     owner_email: userMap.get(subscription.owner_id)?.email ?? "—",
   }));

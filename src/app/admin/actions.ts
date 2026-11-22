@@ -5,9 +5,15 @@ import { isAdminRole, isSuperAdminRole, requireAdmin, requireSuperAdmin } from "
 import { storageBucket } from "@/lib/config";
 import { persistProperty } from "@/lib/properties/save-property";
 import { getAdminClient } from "@/lib/supabase/admin";
+import { hasPropertyPublicationColumn } from "@/lib/supabase/schema";
 import { getServerClient } from "@/lib/supabase/server";
-import { getDestinationImageStoragePath } from "@/lib/utils";
+import { getDestinationImageStoragePath, formatDate } from "@/lib/utils";
 import { recordAdminAudit } from "@/lib/security/audit";
+import {
+  parseAdminStartDate,
+  resolveAdminGrantReason,
+  resolveAdminPremiumDuration,
+} from "@/lib/subscriptions/admin-grants";
 import {
   adminReviewReportActionSchema,
   categorySchema,
@@ -70,12 +76,16 @@ export async function setPropertyStatusAction(formData: FormData) {
   const reason = parseOptional(formData.get("reason"));
   if (status === "rejected" && !reason) return;
 
+  const publicationReady = await hasPropertyPublicationColumn(supabase);
   await supabase
     .from("properties")
     .update({
       status,
       rejection_reason: status === "rejected" ? reason : null,
       approved_at: status === "approved" ? new Date().toISOString() : null,
+      ...(publicationReady
+        ? { is_published: status === "approved", publish_after_renewal: false }
+        : {}),
     })
     .eq("id", id);
   await recordAdminAudit({
@@ -337,6 +347,178 @@ export async function setUserStatusAction(formData: FormData) {
     metadata: { from: target.account_status, to: status, targetEmail: target.email },
   });
   revalidateAdmin();
+}
+
+type AdminPremiumRpcResult = {
+  ok?: boolean;
+  message?: string;
+  subscription_id?: string;
+  expires_at?: string | null;
+};
+
+async function resolvePremiumPlan(supabase: Client) {
+  const { data } = await supabase
+    .from("plans")
+    .select("id")
+    .eq("code", "premium")
+    .eq("is_active", true)
+    .maybeSingle();
+  return data?.id ?? null;
+}
+
+async function validatePremiumTarget(supabase: Client, userId: string) {
+  const { data } = await supabase
+    .from("profiles")
+    .select("id,role,account_status,email")
+    .eq("id", userId)
+    .maybeSingle();
+  if (!data || data.account_status !== "active" || data.role === "super_admin") return null;
+  return data;
+}
+
+function premiumRpcFailure(result: AdminPremiumRpcResult | null, error: { message?: string } | null, fallback: string) {
+  return {
+    ok: false as const,
+    message: result?.message ?? error?.message ?? fallback,
+  };
+}
+
+function premiumSuccessMessage(prefix: string, expiresAt: string | null | undefined) {
+  return expiresAt ? `${prefix} Premium is active until ${formatDate(expiresAt)}.` : `${prefix} Premium is active.`;
+}
+
+export async function grantPremiumAction(
+  _previous: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const { user, profile } = await requireSuperAdmin();
+  const supabase = await client();
+  if (!supabase) return { ok: false, message: "Database not configured." };
+
+  const userId = parseOptional(formData.get("userId"));
+  if (!userId) return { ok: false, message: "Select a user." };
+
+  const duration = resolveAdminPremiumDuration(
+    parseOptional(formData.get("billingCycle")),
+    parseOptional(formData.get("customMonths")),
+  );
+  if (!duration.ok) return { ok: false, message: duration.message, fieldErrors: { duration: [duration.message] } };
+
+  const reason = resolveAdminGrantReason(
+    parseOptional(formData.get("reason")),
+    parseOptional(formData.get("otherReason")),
+  );
+  if (!reason.ok) return { ok: false, message: reason.message, fieldErrors: { reason: [reason.message] } };
+
+  const start = parseAdminStartDate(parseOptional(formData.get("startAt")));
+  if (!start.ok) return { ok: false, message: start.message, fieldErrors: { startAt: [start.message] } };
+
+  const target = await validatePremiumTarget(supabase, userId);
+  if (!target) return { ok: false, message: "User is not eligible for a Premium grant." };
+
+  const planId = await resolvePremiumPlan(supabase);
+  if (!planId) return { ok: false, message: "Premium plan is not configured." };
+
+  const { data, error } = await supabase.rpc("admin_grant_premium", {
+    p_owner_id: userId,
+    p_plan_id: planId,
+    p_billing_cycle: duration.value.billingCycle,
+    p_duration_months: duration.value.durationMonths,
+    p_start_at: start.value,
+    p_reason: reason.value,
+    p_actor_id: user.id,
+    p_actor_email: profile?.email ?? user.email ?? "",
+    p_notes: parseOptional(formData.get("notes")),
+  });
+
+  const result = data as AdminPremiumRpcResult | null;
+  if (error || !result?.ok) return premiumRpcFailure(result, error, "Premium grant failed.");
+  revalidateAdmin();
+  return { ok: true, message: premiumSuccessMessage("Premium granted.", result.expires_at) };
+}
+
+export async function extendPremiumAction(
+  _previous: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const { user, profile } = await requireSuperAdmin();
+  const supabase = await client();
+  if (!supabase) return { ok: false, message: "Database not configured." };
+
+  const userId = parseOptional(formData.get("userId"));
+  if (!userId) return { ok: false, message: "Select a user." };
+
+  const duration = resolveAdminPremiumDuration(
+    parseOptional(formData.get("billingCycle")),
+    parseOptional(formData.get("customMonths")),
+  );
+  if (!duration.ok) return { ok: false, message: duration.message, fieldErrors: { duration: [duration.message] } };
+
+  const reason = resolveAdminGrantReason(
+    parseOptional(formData.get("reason")),
+    parseOptional(formData.get("otherReason")),
+  );
+  if (!reason.ok) return { ok: false, message: reason.message, fieldErrors: { reason: [reason.message] } };
+
+  const target = await validatePremiumTarget(supabase, userId);
+  if (!target) return { ok: false, message: "User is not eligible for a Premium extension." };
+
+  const planId = await resolvePremiumPlan(supabase);
+  if (!planId) return { ok: false, message: "Premium plan is not configured." };
+
+  const { data, error } = await supabase.rpc("admin_extend_premium", {
+    p_owner_id: userId,
+    p_plan_id: planId,
+    p_billing_cycle: duration.value.billingCycle,
+    p_duration_months: duration.value.durationMonths,
+    p_reason: reason.value,
+    p_actor_id: user.id,
+    p_actor_email: profile?.email ?? user.email ?? "",
+    p_notes: parseOptional(formData.get("notes")),
+  });
+
+  const result = data as AdminPremiumRpcResult | null;
+  if (error || !result?.ok) return premiumRpcFailure(result, error, "Premium extension failed.");
+  revalidateAdmin();
+  return { ok: true, message: premiumSuccessMessage("Premium extended.", result.expires_at) };
+}
+
+export async function revokePremiumAction(
+  _previous: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const { user, profile } = await requireSuperAdmin();
+  const supabase = await client();
+  if (!supabase) return { ok: false, message: "Database not configured." };
+
+  const userId = parseOptional(formData.get("userId"));
+  if (!userId) return { ok: false, message: "Select a user." };
+
+  if (parseOptional(formData.get("confirm")) !== "REVOKE") {
+    return { ok: false, message: "Type REVOKE to confirm.", fieldErrors: { confirm: ["Type REVOKE to confirm."] } };
+  }
+
+  const reason = resolveAdminGrantReason(
+    parseOptional(formData.get("reason")),
+    parseOptional(formData.get("otherReason")),
+  );
+  if (!reason.ok) return { ok: false, message: reason.message, fieldErrors: { reason: [reason.message] } };
+
+  const target = await validatePremiumTarget(supabase, userId);
+  if (!target) return { ok: false, message: "User is not eligible for Premium revocation." };
+
+  const { data, error } = await supabase.rpc("admin_revoke_premium", {
+    p_owner_id: userId,
+    p_reason: reason.value,
+    p_actor_id: user.id,
+    p_actor_email: profile?.email ?? user.email ?? "",
+    p_notes: parseOptional(formData.get("notes")),
+  });
+
+  const result = data as AdminPremiumRpcResult | null;
+  if (error || !result?.ok) return premiumRpcFailure(result, error, "Premium revocation failed.");
+  revalidateAdmin();
+  return { ok: true, message: "Premium revoked. Free limits now apply." };
 }
 
 export async function savePlanAction(

@@ -4,6 +4,7 @@ export type PropertyStatus = "draft" | "pending" | "approved" | "rejected";
 export type PlanCode = "free" | "premium";
 export type BillingCycle = "monthly" | "six_month" | "yearly";
 export type SubscriptionStatus = "active" | "expired" | "cancelled";
+export type SubscriptionSource = "razorpay" | "admin_grant";
 export type PaymentStatus = "pending" | "success" | "failed" | "refunded";
 export type EnquiryStatus = "new" | "read" | "replied" | "contacted" | "pending" | "completed";
 
@@ -89,6 +90,8 @@ export type PropertyRow = Timestamps & {
   price_per_night: number | null;
   status: PropertyStatus;
   is_featured: boolean;
+  is_published: boolean;
+  publish_after_renewal: boolean;
   plan_type: PlanCode;
   contact_phone: string | null;
   whatsapp_number: string | null;
@@ -130,6 +133,11 @@ export type SubscriptionRow = Timestamps & {
   expires_at: string | null;
   razorpay_subscription_id: string | null;
   auto_renew: boolean;
+  source: SubscriptionSource;
+  granted_by: string | null;
+  grant_reason: string | null;
+  grant_notes: string | null;
+  grant_duration_months: number | null;
 };
 
 export type PaymentRow = {
@@ -144,6 +152,13 @@ export type PaymentRow = {
   currency: string;
   billing_cycle: BillingCycle;
   status: PaymentStatus;
+  created_at: string;
+};
+
+export type PaymentEventRow = {
+  event_id: string;
+  payment_id: string;
+  event_type: string;
   created_at: string;
 };
 
@@ -296,6 +311,11 @@ export type Database = {
         },
         Partial<PaymentRow>
       >;
+      payment_events: Table<
+        PaymentEventRow,
+        Partial<PaymentEventRow> & { event_id: string; payment_id: string; event_type: string },
+        Partial<PaymentEventRow>
+      >;
       enquiries: Table<
         EnquiryRow,
         Partial<EnquiryRow> & { property_id: string; name: string; email: string; message: string },
@@ -345,11 +365,91 @@ export type Database = {
         };
         Returns: boolean;
       };
+      activate_paid_subscription: {
+        Args: {
+          p_payment_id: string;
+          p_razorpay_payment_id: string;
+          p_duration_months: number;
+          p_signature?: string | null;
+          p_event_id?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
+      record_payment_status: {
+        Args: {
+          p_order_id: string;
+          p_status: PaymentStatus;
+          p_event_id?: string | null;
+          p_razorpay_payment_id?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
+      reserve_payment_event: {
+        Args: { p_event_id: string; p_payment_id: string; p_event_type: string };
+        Returns: boolean;
+      };
+      get_owner_entitlement: {
+        Args: { p_owner_id: string };
+        Returns: Record<string, unknown> | null;
+      };
+      apply_expired_property_policy: {
+        Args: { p_owner_id?: string | null };
+        Returns: Record<string, unknown>;
+      };
+      select_expiry_property: {
+        Args: { p_owner_id: string; p_property_id: string };
+        Returns: Record<string, unknown>;
+      };
+      set_property_published: {
+        Args: { p_property_id: string; p_published: boolean };
+        Returns: Record<string, unknown>;
+      };
+      admin_grant_premium: {
+        Args: {
+          p_owner_id: string;
+          p_plan_id: string;
+          p_billing_cycle: BillingCycle;
+          p_duration_months: number;
+          p_start_at: string;
+          p_reason: string;
+          p_actor_id: string;
+          p_actor_email: string;
+          p_notes?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
+      admin_extend_premium: {
+        Args: {
+          p_owner_id: string;
+          p_plan_id: string;
+          p_billing_cycle: BillingCycle;
+          p_duration_months: number;
+          p_reason: string;
+          p_actor_id: string;
+          p_actor_email: string;
+          p_notes?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
+      admin_revoke_premium: {
+        Args: {
+          p_owner_id: string;
+          p_reason: string;
+          p_actor_id: string;
+          p_actor_email: string;
+          p_notes?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
     };
     Enums: {
       user_role: UserRole;
       property_status: PropertyStatus;
       plan_code: PlanCode;
+      billing_cycle: BillingCycle;
+      subscription_status: SubscriptionStatus;
+      subscription_source: SubscriptionSource;
+      payment_status: PaymentStatus;
     };
     CompositeTypes: Record<string, never>;
   };

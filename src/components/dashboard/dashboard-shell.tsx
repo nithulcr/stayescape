@@ -51,8 +51,8 @@ export function DashboardShell({
       <div className="min-w-0">
         <header className="flex h-20 items-center justify-between border-b border-forest/10 bg-ivory px-5 lg:px-10">
           <div>
-            <p className="text-[0.65rem] uppercase tracking-[0.24em] text-gold">Owner workspace</p>
-            <p className="mt-1 text-sm font-semibold text-forest-deep">{name}</p>
+            <p className="text-sm font-semibold text-forest font-heading uppercase ">Owner workspace</p>
+            <p className="mt-1 text-sm  text-forest-deep">{name}</p>
           </div>
           <Link href="/" className="btn-secondary !py-2">
             View site <ArrowUpRight size={14} />

@@ -1,25 +1,40 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { NextResponse, type NextRequest } from "next/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 
-export async function POST(request: NextRequest) {
+function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!secret) return false;
+
+  const expected = Buffer.from(`Bearer ${secret}`);
+  const received = Buffer.from(request.headers.get("authorization") ?? "");
+  return received.length === expected.length && timingSafeEqual(received, expected);
+}
+
+async function processExpiries(request: NextRequest) {
+  if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const admin = getAdminClient();
   if (!admin) return NextResponse.json({ error: "Service role key missing" }, { status: 503 });
 
-  const { error } = await admin
-    .from("subscriptions")
-    .update({ status: "expired" })
-    .eq("status", "active")
-    .lt("expires_at", new Date().toISOString());
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const { data, error } = await admin.rpc("apply_expired_property_policy", {});
+  if (error) return NextResponse.json({ error: "Expiry processing failed" }, { status: 500 });
 
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/properties");
+  revalidatePath("/dashboard/subscription");
   revalidatePath("/admin/subscriptions");
-  return NextResponse.json({ ok: true });
+  revalidatePath("/properties");
+  return NextResponse.json({ ok: true, result: data ?? {} });
+}
+
+export async function GET(request: NextRequest) {
+  return processExpiries(request);
+}
+
+export async function POST(request: NextRequest) {
+  return processExpiries(request);
 }
