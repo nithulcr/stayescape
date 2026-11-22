@@ -107,7 +107,7 @@ export default async function HomePage() {
       <PropertySection
         items={recent}
         eyebrow="Just added"
-        title="Fresh on STAYSCAPE."
+        title="Fresh on STAYESCAPE."
         description="Newly approved properties looking for their first guests through the platform."
       />
 

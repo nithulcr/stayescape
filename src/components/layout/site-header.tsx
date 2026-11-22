@@ -66,13 +66,13 @@ export function SiteHeader() {
         <Link
           href="/"
           className="flex items-center gap-2.5"
-          aria-label={`${user ? user.name : "Stayscape"} home`}
+          aria-label={`${user ? user.name : "STAYESCAPE"} home`}
         >
           <Image
             src="/logo2.png"
             width="300"
             height="70"
-            alt={user ? user.name : "Stayscape"}
+            alt={user ? user.name : "STAYESCAPE"}
             className="object-contain items-start w-fit h-[65px]"
           />
         </Link>

@@ -229,6 +229,12 @@ test("scheduled expiry uses a secure, idempotent database policy and generic err
   assert.match(cronRoute, /Expiry processing failed/);
 });
 
+test("expiry function is dropped before changing its return type", () => {
+  assert.match(migration, /drop function if exists public\.expire_subscriptions\(\)/);
+  assert.match(migration, /create function public\.expire_subscriptions\(\)[\s\S]*returns void/);
+  assert.match(migration, /grant execute on function public\.expire_subscriptions\(\) to service_role/);
+});
+
 test("refunds are recorded without silently revoking subscriptions", () => {
   assert.match(webhookRoute, /event\.eventType === "payment\.failed" \? "failed" : "refunded"/);
   assert.match(read("../supabase/migrations/0013_payment_security.sql"), /refunded/);

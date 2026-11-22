@@ -119,7 +119,7 @@ export default async function PropertyPage({
                 propertySlug={property.slug}
               />
             </div>
-            <h1 className="display-title text-[clamp(2.2rem,5vw,3.6rem)]">{property.name}</h1>
+            <h1 className="display-title text-[clamp(2.2rem,5vw,3rem)]">{property.name}</h1>
             <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted">
               <MapPin size={15} className="text-gold" />
               {[property.district, property.city, property.state].filter(Boolean).join(", ") || "Location on request"}

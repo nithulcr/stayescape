@@ -1,4 +1,4 @@
-# STAYSCAPE
+# STAYESCAPE
 
 A premium property discovery and listing marketplace for Kerala, built with Next.js 16, Supabase, Tailwind CSS v4, React Hook Form, Zod, Framer Motion and Razorpay.
 

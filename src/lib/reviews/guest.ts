@@ -1,5 +1,5 @@
-export const guestReviewCookie = "stayscape_guest_review_id";
-export const guestReviewHeader = "x-stayscape-guest";
+export const guestReviewCookie = "STAYESCAPE_guest_review_id";
+export const guestReviewHeader = "x-STAYESCAPE-guest";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

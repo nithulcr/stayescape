@@ -10,7 +10,8 @@ import {
   resolveSubscriptionStatus,
 } from "@/lib/subscriptions/expiry";
 import type { PlanRow, SubscriptionRow } from "@/types/database.types";
-import type { OwnerEntitlement, PlanContext, PlanLimits } from "@/types";
+import type { PlanContext, PlanLimits } from "@/types";
+import { effectivePlanLimits } from "./effective-limits.ts";
 import {
   FALLBACK_FREE_LIMITS,
   FALLBACK_PREMIUM_LIMITS,
@@ -36,26 +37,6 @@ export function toPlanLimits(plan: PlanRow | null, fallback: PlanLimits): PlanLi
     expiredListingVisibility: plan.expired_listing_visibility,
     features: Array.isArray(plan.features) ? plan.features.map(String) : [],
     isActive: plan.is_active,
-  };
-}
-
-function limitsFromEntitlement(
-  entitlement: OwnerEntitlement,
-  fallbacks: { free: PlanLimits; premium: PlanLimits },
-): PlanLimits {
-  const base = entitlement.plan_code === "premium" ? fallbacks.premium : fallbacks.free;
-  return {
-    ...base,
-    planCode: entitlement.plan_code,
-    planName: entitlement.plan_name,
-    maxProperties: entitlement.max_properties,
-    maxImagesPerProperty: entitlement.max_images_per_property || base.maxImagesPerProperty,
-    priceMonthly: Number(entitlement.price_monthly),
-    priceSixMonth: Number(entitlement.price_six_month),
-    priceYearly: Number(entitlement.price_yearly),
-    expiredListingVisibility: entitlement.expired_listing_visibility,
-    features: entitlement.features,
-    isActive: true,
   };
 }
 
@@ -156,7 +137,7 @@ export async function getPlanContextForUser(
   const entitlement = await getOwnerEntitlement(userId);
   if (entitlement) {
     return {
-      limits: limitsFromEntitlement(entitlement, { free, premium }),
+      limits: effectivePlanLimits(entitlement, { free, premium }),
       isPremium: entitlement.has_premium,
       isExpired: entitlement.is_expired,
       expiresAt: entitlement.expires_at,

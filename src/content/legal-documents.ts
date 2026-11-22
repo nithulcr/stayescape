@@ -88,7 +88,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "privacy-08-reviews-and-ratings",
         title: "8. Reviews and ratings",
         paragraphs: [
-          "We process ratings, review text, moderation status and report information so that reviews can be checked before public display. Anonymous guest reviews may be associated with the `stayscape:guest_review` cookie to help identify repeat submissions and prevent abuse.",
+          "We process ratings, review text, moderation status and report information so that reviews can be checked before public display. Anonymous guest reviews may be associated with the `STAYESCAPE:guest_review` cookie to help identify repeat submissions and prevent abuse.",
           "Reviews can be reported for moderation. Owners must not manipulate ratings or arrange reviews in exchange for preferential treatment. We may anonymise or remove reviews where needed to protect platform integrity or comply with law."
         ],
         links: [{ label: "Review Policy", href: "/review-policy" }]
@@ -106,7 +106,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "privacy-10-cookies-and-similar-technologies",
         title: "10. Cookies and similar technologies",
         paragraphs: [
-          "Stay Escape uses Supabase auth and session cookies to keep you signed in, essential and security cookies set through Supabase SSR, and the `stayscape:guest_review` cookie to identify anonymous reviews. These cookies support core functions and platform security.",
+          "Stay Escape uses Supabase auth and session cookies to keep you signed in, essential and security cookies set through Supabase SSR, and the `STAYESCAPE:guest_review` cookie to identify anonymous reviews. These cookies support core functions and platform security.",
           "There are no analytics, advertising or marketing cookies currently in use. LocalStorage is used for favourites, as explained above. Full details are in our cookie policy."
         ],
         links: [{ label: "Cookie Policy", href: "/cookie-policy" }]
@@ -253,7 +253,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "privacy-26-contact-us",
         title: "26. Contact us",
         paragraphs: [
-          "For questions about this policy or to exercise a privacy right, contact hello@stayscape.example. This is a placeholder address and must be replaced with the official support email before launch.",
+          "For questions about this policy or to exercise a privacy right, contact hello@STAYESCAPE.example. This is a placeholder address and must be replaced with the official support email before launch.",
           "You can also use our general contact page or the grievance process for formal complaints."
         ],
         links: [
@@ -506,7 +506,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "terms-27-contact",
         title: "Contact",
         paragraphs: [
-          "Questions about these terms can be sent to hello@stayscape.example. This is a placeholder address and must be replaced with the official support email before launch.",
+          "Questions about these terms can be sent to hello@STAYESCAPE.example. This is a placeholder address and must be replaced with the official support email before launch.",
           "Formal complaints can be raised through the grievance process."
         ],
         links: [
@@ -607,7 +607,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "user-09-review-authenticity",
         title: "Review authenticity",
         paragraphs: [
-          "Do not post fake reviews, impersonate another guest, or coordinate reviews to create a misleading impression. Anonymous guest reviews may be identified using the `stayscape:guest_review` cookie.",
+          "Do not post fake reviews, impersonate another guest, or coordinate reviews to create a misleading impression. Anonymous guest reviews may be identified using the `STAYESCAPE:guest_review` cookie.",
           "We may remove, anonymise or reject reviews that breach the review policy."
         ]
       },
@@ -928,7 +928,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "cookie-02-cookies-we-use",
         title: "Cookies we use",
         paragraphs: [
-          "The cookies currently used are Supabase auth and session cookies, essential and security cookies set through Supabase SSR, and the guest review cookie named `stayscape:guest_review`.",
+          "The cookies currently used are Supabase auth and session cookies, essential and security cookies set through Supabase SSR, and the guest review cookie named `STAYESCAPE:guest_review`.",
           "We do not currently set analytics, advertising or marketing cookies."
         ],
         links: [{ label: "Privacy Policy", href: "/privacy-policy" }]
@@ -954,7 +954,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "cookie-05-guest-review-cookie",
         title: "Guest review cookie",
         paragraphs: [
-          "The cookie `stayscape:guest_review` is used to identify anonymous reviews submitted without an account. It helps reduce duplicate or abusive submissions and supports review moderation.",
+          "The cookie `STAYESCAPE:guest_review` is used to identify anonymous reviews submitted without an account. It helps reduce duplicate or abusive submissions and supports review moderation.",
           "This cookie is not used for marketing and does not track browsing across other websites."
         ],
         links: [{ label: "Review Policy", href: "/review-policy" }]
@@ -1005,7 +1005,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         title: "Changes and contact",
         paragraphs: [
           "We may update this cookie policy when the platform changes. The last-updated date and version at the top of this document indicate the current version.",
-          "Questions can be sent to hello@stayscape.example. This is a placeholder address and must be replaced with the official support email before launch."
+          "Questions can be sent to hello@STAYESCAPE.example. This is a placeholder address and must be replaced with the official support email before launch."
         ],
         links: [{ label: "Contact", href: "/contact" }]
       }
@@ -1126,7 +1126,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "disclaimer-12-contact",
         title: "Contact",
         paragraphs: [
-          "For questions about this disclaimer, contact hello@stayscape.example. This is a placeholder address and must be replaced with the official support email before launch.",
+          "For questions about this disclaimer, contact hello@STAYESCAPE.example. This is a placeholder address and must be replaced with the official support email before launch.",
           "Formal complaints can be raised through the grievance process."
         ],
         links: [{ label: "Contact", href: "/contact" }]
@@ -1173,7 +1173,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "grievance-03-support-contact",
         title: "Support contact",
         paragraphs: [
-          "The support address currently shown is hello@stayscape.example. This is a placeholder and must be replaced with the official support email before launch.",
+          "The support address currently shown is hello@STAYESCAPE.example. This is a placeholder and must be replaced with the official support email before launch.",
           "No named grievance officer is published in this initial version; complaints are routed through the support team."
         ]
       },
@@ -1299,7 +1299,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "contact-01-support-email",
         title: "Support email",
         paragraphs: [
-          "Email hello@stayscape.example. This is a placeholder address and must be replaced with the official support email before launch."
+          "Email hello@STAYESCAPE.example. This is a placeholder address and must be replaced with the official support email before launch."
         ]
       },
       {
@@ -1528,7 +1528,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "review-02-who-can-review",
         title: "Who can review",
         paragraphs: [
-          "Reviews may be submitted by users with relevant accounts and by guests using the anonymous guest review feature where available. Anonymous reviews may be associated with the `stayscape:guest_review` cookie for integrity checks.",
+          "Reviews may be submitted by users with relevant accounts and by guests using the anonymous guest review feature where available. Anonymous reviews may be associated with the `STAYESCAPE:guest_review` cookie for integrity checks.",
           "You must not impersonate another person or submit a review on behalf of someone without their permission."
         ]
       },
@@ -1611,7 +1611,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "review-12-anonymity-and-data",
         title: "Anonymity and data",
         paragraphs: [
-          "Guest reviews may be linked to the `stayscape:guest_review` cookie to identify repeat or duplicate submissions. This identifier is used for integrity, not marketing.",
+          "Guest reviews may be linked to the `STAYESCAPE:guest_review` cookie to identify repeat or duplicate submissions. This identifier is used for integrity, not marketing.",
           "Information about review handling is also covered by the privacy policy."
         ],
         links: [{ label: "Privacy Policy", href: "/privacy-policy" }]
@@ -1751,7 +1751,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "cancellation-12-contact",
         title: "Contact",
         paragraphs: [
-          "For cancellation or refund queries, include your account email, plan, payment reference and a short explanation. Contact hello@stayscape.example. This is a placeholder address and must be replaced with the official support email before launch.",
+          "For cancellation or refund queries, include your account email, plan, payment reference and a short explanation. Contact hello@STAYESCAPE.example. This is a placeholder address and must be replaced with the official support email before launch.",
           "You can also use the contact page for general support."
         ],
         links: [{ label: "Contact", href: "/contact" }]
@@ -1914,7 +1914,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "subscription-17-contact",
         title: "Contact",
         paragraphs: [
-          "For plan or billing questions, include your account email, plan name and payment reference. Contact hello@stayscape.example. This is a placeholder address and must be replaced with the official support email before launch.",
+          "For plan or billing questions, include your account email, plan name and payment reference. Contact hello@STAYESCAPE.example. This is a placeholder address and must be replaced with the official support email before launch.",
           "Formal complaints can be raised through the grievance process."
         ],
         links: [{ label: "Grievance Redressal", href: "/grievance-redressal" }]
@@ -2201,7 +2201,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "deletion-13-contact",
         title: "Contact",
         paragraphs: [
-          "For help with a deletion request, contact hello@stayscape.example. This is a placeholder address and must be replaced with the official support email before launch.",
+          "For help with a deletion request, contact hello@STAYESCAPE.example. This is a placeholder address and must be replaced with the official support email before launch.",
           "You may also use the grievance process for a formal complaint about data handling."
         ],
         links: [{ label: "Grievance Redressal", href: "/grievance-redressal" }]
@@ -2349,7 +2349,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
         id: "security-15-responsible-disclosure",
         title: "Responsible disclosure",
         paragraphs: [
-          "If you believe you have found a security vulnerability, report it privately to hello@stayscape.example. This is a placeholder address and must be replaced with the official support email before launch.",
+          "If you believe you have found a security vulnerability, report it privately to hello@STAYESCAPE.example. This is a placeholder address and must be replaced with the official support email before launch.",
           "Include a description, affected page or endpoint, steps to reproduce and the impact you observed. Please do not exploit the issue beyond what is needed to demonstrate it, and do not disclose it publicly before we have had a reasonable opportunity to investigate."
         ],
         links: [{ label: "Contact", href: "/contact" }]

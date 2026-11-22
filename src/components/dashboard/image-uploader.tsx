@@ -51,7 +51,7 @@ export function ImageUploader({
       }
       router.refresh();
     } catch {
-      setError("Upload failed. Please try again.");
+      setError("Upload network error. Check your connection and try again.");
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";

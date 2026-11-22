@@ -1,4 +1,4 @@
--- STAYSCAPE initial seed data.
+-- STAYESCAPE initial seed data.
 -- Kerala destinations only; no sample properties are seeded.
 
 insert into public.plans (code, name, description, price_monthly, price_six_month, price_yearly,
@@ -64,7 +64,7 @@ values
     'Misty hills, wildlife and cool-weather retreats.',
     'Wayanad is Kerala’s hill district of forests, waterfalls, tea plantations and tribal heritage. It is ideal for nature-focused staycations, family trips and monsoon escapes.',
     'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Wayanad | STAYSCAPE',
+    'Stays in Wayanad | STAYESCAPE',
     'Discover resorts, villas and homestays in Wayanad with misty valleys, waterfalls and wildlife experiences.',
     true, 1
   ),
@@ -73,7 +73,7 @@ values
     'Tea gardens, cool air and panoramic hill views.',
     'Munnar is Kerala’s best-known hill station, framed by rolling tea estates, eucalyptus forests and misty peaks. Explore tea museum visits, sunrise points and plantation stays.',
     'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Munnar | STAYSCAPE',
+    'Stays in Munnar | STAYESCAPE',
     'Find tea estate stays, resorts and homestays in Munnar for a refreshing Kerala hill getaway.',
     true, 2
   ),
@@ -82,7 +82,7 @@ values
     'Backwaters, canals and iconic houseboat journeys.',
     'Alappuzha, also known as Alleppey, is the gateway to Kerala’s backwaters. Stay on a houseboat or choose a riverside resort for sunset cruises and village experiences.',
     'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Alappuzha | STAYSCAPE',
+    'Stays in Alappuzha | STAYESCAPE',
     'Browse houseboats and backwater resorts in Alappuzha, one of Kerala’s most loved staycation destinations.',
     true, 3
   ),
@@ -91,7 +91,7 @@ values
     'Harbour city energy, heritage and great food.',
     'Kochi blends colonial history, busy harbours, art galleries and an excellent food scene. It is a convenient base for exploring central Kerala and the nearby islands.',
     'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Kochi | STAYSCAPE',
+    'Stays in Kochi | STAYESCAPE',
     'Explore boutique hotels, homestays and resorts in Kochi for culture, cuisine and coastal charm.',
     true, 4
   ),
@@ -100,7 +100,7 @@ values
     'Colonial streets, cafés and seaside heritage.',
     'Fort Kochi is a compact heritage quarter of churches, spice warehouses, art spaces and seaside promenades. Boutique stays here suit slow travellers and culture lovers.',
     'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Fort Kochi | STAYSCAPE',
+    'Stays in Fort Kochi | STAYESCAPE',
     'Find heritage homestays and boutique hotels in Fort Kochi, close to cafés, galleries and the seafront.',
     true, 5
   ),
@@ -109,7 +109,7 @@ values
     'Sandy beaches, surf and sunset-facing resorts.',
     'Kovalam is one of Kerala’s most popular beach destinations, known for crescent-shaped beaches, lighthouse views and a wide range of coastal resorts.',
     'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Kovalam | STAYSCAPE',
+    'Stays in Kovalam | STAYESCAPE',
     'Discover beach resorts and villas in Kovalam for a relaxed Kerala seaside escape.',
     true, 6
   ),
@@ -118,7 +118,7 @@ values
     'Clifftop cafés and dramatic Arabian Sea views.',
     'Varkala’s red cliffs rise directly above the Arabian Sea, creating one of Kerala’s most distinctive coastal settings. It is popular with solo travellers, couples and yoga retreats.',
     'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Varkala | STAYSCAPE',
+    'Stays in Varkala | STAYESCAPE',
     'Browse cliffside hotels, homestays and villas in Varkala with Arabian Sea views.',
     true, 7
   ),
@@ -127,7 +127,7 @@ values
     'Wildlife, spice gardens and forest-edge stays.',
     'Thekkady is home to Periyar Wildlife Sanctuary and a landscape of spice plantations, forest trails and calm lake waters. Wildlife and nature stays are especially popular here.',
     'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Thekkady | STAYSCAPE',
+    'Stays in Thekkady | STAYESCAPE',
     'Find forest lodges, spice plantation stays and resorts near Periyar in Thekkady.',
     true, 8
   ),
@@ -136,7 +136,7 @@ values
     'Birdlife, backwater villas and serene lakeside resorts.',
     'Kumarakom sits on the banks of Vembanad Lake and is known for birdwatching, houseboats and peaceful backwater resorts. It is a great choice for a slower, quieter staycation.',
     'https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Kumarakom | STAYSCAPE',
+    'Stays in Kumarakom | STAYESCAPE',
     'Explore lakeside resorts and backwater villas in Kumarakom for a tranquil Kerala getaway.',
     true, 9
   ),
@@ -145,7 +145,7 @@ values
     'Cold-weather gardens and quiet hill villages.',
     'Kanthalloor is a high-altitude village near Munnar known for temperate fruits, quiet roads and dramatic mountain scenery. It suits travellers looking for an offbeat hill retreat.',
     'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Kanthalloor | STAYSCAPE',
+    'Stays in Kanthalloor | STAYESCAPE',
     'Find offbeat homestays and eco stays in Kanthalloor, a quiet hill destination in Kerala.',
     true, 10
   ),
@@ -154,7 +154,7 @@ values
     'Narrow canals, villages and backwater birdlife.',
     'Munroe Island is a cluster of canals and village paths at the meeting point of Ashtamudi Lake and the Kallada River. Canoe trips and village homestays are the highlight.',
     'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Munroe Island | STAYSCAPE',
+    'Stays in Munroe Island | STAYESCAPE',
     'Discover homestays and backwater stays on Munroe Island for an authentic Kerala village experience.',
     true, 11
   ),
@@ -163,7 +163,7 @@ values
     'Historic beachfront and calm coastal evenings.',
     'Kappad is a peaceful beach destination near Kozhikode, known for its wide shoreline and connection to Vasco da Gama’s arrival in India. It is ideal for a low-key coastal stay.',
     'https://images.unsplash.com/photo-1540206395-68808572332f?auto=format&fit=crop&w=1400&q=80',
-    'Stays in Kappad | STAYSCAPE',
+    'Stays in Kappad | STAYESCAPE',
     'Browse beach homestays and resorts in Kappad for a quiet north Kerala coastline escape.',
     true, 12
   )

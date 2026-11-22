@@ -126,6 +126,7 @@ export type PropertyAmenityRow = {
 export type SubscriptionRow = Timestamps & {
   id: string;
   owner_id: string;
+  user_name: string;
   plan_id: string;
   status: SubscriptionStatus;
   billing_cycle: BillingCycle;
@@ -391,6 +392,18 @@ export type Database = {
       get_owner_entitlement: {
         Args: { p_owner_id: string };
         Returns: Record<string, unknown> | null;
+      };
+      plan_limit_for: {
+        Args: { p_owner_id: string; p_limit_key: string };
+        Returns: number | null;
+      };
+      is_active_property_owner: {
+        Args: { p_user_id: string };
+        Returns: boolean;
+      };
+      storage_property_path_is_owned: {
+        Args: { p_path: string };
+        Returns: boolean;
       };
       apply_expired_property_policy: {
         Args: { p_owner_id?: string | null };

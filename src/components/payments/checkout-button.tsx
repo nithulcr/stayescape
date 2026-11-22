@@ -77,7 +77,7 @@ export function CheckoutButton({
         key: order.keyId,
         amount: order.amount,
         currency: order.currency ?? "INR",
-        name: "STAYSCAPE",
+        name: "STAYESCAPE",
         description: `${order.planName ?? "Premium"} (${getBillingCycleLabel(billingCycle)})`,
         order_id: order.orderId,
         theme: { color: "#123D32" },

@@ -1,3 +1,13 @@
+create or replace function public.is_service_role()
+returns boolean
+language sql
+stable
+set search_path = ''
+as $$
+  select coalesce(current_setting('request.jwt.claim.role', true), '') = 'service_role'
+     or current_user in ('service_role', 'postgres', 'supabase_admin');
+$$;
+
 alter table public.properties
   add column if not exists is_published boolean not null default false,
   add column if not exists publish_after_renewal boolean not null default false;
@@ -497,7 +507,8 @@ create trigger restore_properties_after_renewal_trigger
   after insert or update on public.subscriptions
   for each row execute function public.restore_properties_after_renewal();
 
-create or replace function public.expire_subscriptions()
+drop function if exists public.expire_subscriptions();
+create function public.expire_subscriptions()
 returns void
 language plpgsql
 security definer
@@ -507,6 +518,9 @@ begin
   perform public.apply_expired_property_policy();
 end;
 $$;
+
+revoke all on function public.expire_subscriptions() from public;
+grant execute on function public.expire_subscriptions() to service_role;
 
 revoke all on function public.get_owner_entitlement(uuid) from public;
 grant execute on function public.get_owner_entitlement(uuid) to authenticated, service_role;

@@ -28,7 +28,7 @@ values
     'Vagamon', 'vagamon', 'Kerala',
     'Meadows, pine forests and cool hill air.',
     'Vagamon is a high-range hill destination in Idukki district known for rolling meadows, pine forests, mist and quiet roadside stops.',
-    'Stays in Vagamon | STAYSCAPE',
+    'Stays in Vagamon | STAYESCAPE',
     'Explore trial stay listings in Vagamon, a cool hill destination in Kerala.',
     true, 13
   ),
@@ -36,7 +36,7 @@ values
     'Bekal', 'bekal', 'Kerala',
     'Fort views and a quiet north Kerala shoreline.',
     'Bekal is a coastal destination in Kasaragod district, known for Bekal Fort, beach walks and a slower north Kerala staycation pace.',
-    'Stays in Bekal | STAYSCAPE',
+    'Stays in Bekal | STAYESCAPE',
     'Explore trial stay listings in Bekal, near Bekal Fort and the Kasaragod coast.',
     true, 14
   ),
@@ -44,7 +44,7 @@ values
     'Palakkad', 'palakkad', 'Kerala',
     'Palm groves, dams and the Palakkad Gap.',
     'Palakkad is Kerala’s inland gateway, known for palace architecture, dams, farms and a landscape shaped by the Palakkad Gap.',
-    'Stays in Palakkad | STAYSCAPE',
+    'Stays in Palakkad | STAYESCAPE',
     'Explore trial stay listings in Palakkad for a calm inland Kerala staycation.',
     true, 15
   ),
@@ -52,7 +52,7 @@ values
     'Thrissur', 'thrissur', 'Kerala',
     'Heritage streets, temples and cultural landmarks.',
     'Thrissur is central Kerala’s cultural hub, with temple precincts, museums, markets and easy access to both coast and inland villages.',
-    'Stays in Thrissur | STAYSCAPE',
+    'Stays in Thrissur | STAYESCAPE',
     'Explore trial stay listings in Thrissur, Kerala’s cultural capital.',
     true, 16
   ),
@@ -60,7 +60,7 @@ values
     'Kannur', 'kannur', 'Kerala',
     'Cliff-top forts, beaches and folk traditions.',
     'Kannur combines coastal scenery, hill forts and strong folk traditions, making it a useful base for exploring north Kerala.',
-    'Stays in Kannur | STAYSCAPE',
+    'Stays in Kannur | STAYESCAPE',
     'Explore trial stay listings in Kannur, a coastal and cultural destination in north Kerala.',
     true, 17
   ),
@@ -68,7 +68,7 @@ values
     'Kozhikode', 'kozhikode', 'Kerala',
     'Historic coast, food streets and easy beach access.',
     'Kozhikode is a north Kerala city known for its harbour history, food culture and nearby beaches such as Kappad.',
-    'Stays in Kozhikode | STAYSCAPE',
+    'Stays in Kozhikode | STAYESCAPE',
     'Explore trial stay listings in Kozhikode, a historic coastal city in north Kerala.',
     true, 18
   )

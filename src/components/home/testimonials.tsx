@@ -13,7 +13,7 @@ const testimonials = [
   },
   {
     quote:
-      "We wanted a platform that felt as considered as our property. STAYSCAPE gave us that premium presentation without a steep learning curve.",
+      "We wanted a platform that felt as considered as our property. STAYESCAPE gave us that premium presentation without a steep learning curve.",
     name: "Rahul Thomas",
     place: "Villa owner, Alappuzha",
     avatar: media.avatarOne,
@@ -31,7 +31,7 @@ export function Testimonials() {
   return (
     <section className="section-space bg-ivory">
       <div className="site-container">
-        <div className="mx-auto max-w-2xl text-center">
+        <div className="mx-auto max-w-xl text-center">
           <p className="eyebrow">Owner stories</p>
           <h2 className="section-title mt-3">Trusted by independent hosts.</h2>
         </div>

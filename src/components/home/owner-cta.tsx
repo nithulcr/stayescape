@@ -13,7 +13,7 @@ export function OwnerCta() {
                 Your property deserves a beautiful listing.
               </h2>
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/70 md:text-base">
-                Join STAYSCAPE as a property owner, publish your first listing free and upgrade only when you need more room to grow.
+                Join STAYESCAPE as a property owner, publish your first listing free and upgrade only when you need more room to grow.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">

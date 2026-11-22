@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-const storageKey = "stayscape:favorites";
+const storageKey = "STAYESCAPE:favorites";
 
 function readFavorites(): string[] {
   if (typeof window === "undefined") return [];

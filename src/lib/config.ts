@@ -1,9 +1,9 @@
 export const brand = {
-  name: "STAYSCAPE",
+  name: "STAYESCAPE",
   tagline: "Discover. Stay. Experience.",
   description:
     "Discover beautiful resorts, villas, homestays and unique stays across Kerala and beyond.",
-  email: "hello@stayscape.example",
+  email: "hello@STAYESCAPE.example",
 } as const;
 
 export const siteUrl = (

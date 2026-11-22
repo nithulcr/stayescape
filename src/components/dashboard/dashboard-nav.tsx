@@ -27,10 +27,10 @@ export function DashboardNav() {
             key={link.href}
             href={link.href}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors",
+              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
               active
-                ? "bg-forest text-white"
-                : "text-charcoal/70 hover:bg-forest/5 hover:text-forest",
+                ? "bg-gold text-forest-deep"
+                : "text-white/65 hover:bg-ivory/10 hover:text-white",
             )}
           >
             <link.icon size={16} />

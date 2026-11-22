@@ -1,4 +1,4 @@
-import { imageConstraints } from "@/lib/config";
+import { imageConstraints } from "../config.ts";
 
 type ImageMime = (typeof imageConstraints.acceptedTypes)[number];
 

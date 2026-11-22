@@ -21,7 +21,7 @@ export default async function DashboardPage() {
     return (
       <div className="mx-auto max-w-3xl">
         <p className="eyebrow">Overview</p>
-        <h1 className="display-title mt-3 text-4xl">Welcome to STAYSCAPE.</h1>
+        <h1 className="display-title mt-3 text-4xl">Welcome to STAYESCAPE.</h1>
         <p className="mt-4 text-sm leading-relaxed text-muted">
           Your account is ready. Explore distinctive stays across Kerala, or switch to an owner account to list your own property.
         </p>

@@ -14,7 +14,7 @@ import { formatINR } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "Simple, transparent plans for property owners on STAYSCAPE.",
+  description: "Simple, transparent plans for property owners on STAYESCAPE.",
 };
 
 export default async function PricingPage() {

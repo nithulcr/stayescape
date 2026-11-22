@@ -19,7 +19,7 @@ stable
 set search_path = ''
 as $$
   with raw as (
-    select nullif(current_setting('request.headers', true), '')::json ->> 'x-stayscape-guest' as value
+    select nullif(current_setting('request.headers', true), '')::json ->> 'x-STAYESCAPE-guest' as value
   )
   select case
     when value ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'

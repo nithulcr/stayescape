@@ -22,13 +22,13 @@ const actions = {
 const copy: Record<Mode, { eyebrow: string; title: string; description: string; submit: string }> = {
   login: {
     eyebrow: "Welcome back",
-    title: "Sign in to STAYSCAPE",
+    title: "Sign in to STAYESCAPE",
     description: "Manage your stays, enquiries and subscription in one place.",
     submit: "Sign in",
   },
   register: {
     eyebrow: "Create an account",
-    title: "Join STAYSCAPE",
+    title: "Join STAYESCAPE",
     description: "Discover distinctive stays or start listing your own property.",
     submit: "Create account",
   },

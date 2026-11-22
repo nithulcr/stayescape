@@ -6,7 +6,7 @@ import { media } from "@/lib/media";
 
 export const metadata: Metadata = {
   title: "List your property",
-  description: "Join STAYSCAPE as a property owner and reach travellers looking for distinctive Kerala stays.",
+  description: "Join STAYESCAPE as a property owner and reach travellers looking for distinctive Kerala stays.",
 };
 
 const steps = [
@@ -45,7 +45,7 @@ export default function ListYourPropertyPage() {
               Put your property on the map.
             </h1>
             <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/75 md:text-base">
-              STAYSCAPE connects independent owners with travellers who care about setting, character and thoughtful hospitality.
+              STAYESCAPE connects independent owners with travellers who care about setting, character and thoughtful hospitality.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/register?role=owner" className="btn-primary !bg-gold !text-forest-deep hover:!bg-[#d8b87f]">

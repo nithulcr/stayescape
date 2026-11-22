@@ -68,7 +68,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
           <div className="surface-card p-6">
             <p className="text-xs uppercase tracking-wider text-gold">Stays available</p>
             <p className="mt-1 font-serif text-3xl text-forest-deep">{properties.total}</p>
-            <p className="mt-2 text-xs text-muted">Reviewed and approved by STAYSCAPE.</p>
+            <p className="mt-2 text-xs text-muted">Reviewed and approved by STAYESCAPE.</p>
             <Link href={`/properties?destination=${destination.slug}`} className="btn-secondary mt-5 w-full">
               View all stays <ArrowRight size={14} />
             </Link>

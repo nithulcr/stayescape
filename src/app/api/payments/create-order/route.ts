@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const order = await razorpay.orders.create({
       amount: prepared.amount,
       currency: prepared.currency,
-      receipt: `stayscape_${crypto.randomUUID().slice(0, 12)}`,
+      receipt: `STAYESCAPE_${crypto.randomUUID().slice(0, 12)}`,
       notes: {
         user_id: prepared.userId,
         plan_code: prepared.plan.code,

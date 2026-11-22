@@ -32,7 +32,7 @@ export function WhyList() {
           <p className="eyebrow">For property owners</p>
           <h2 className="section-title mt-3">A better way to fill your calendar.</h2>
           <p className="mt-4 max-w-lg text-sm  text-muted md:text-base">
-            STAYSCAPE is built for independent owners who want a premium presence without the clutter of mass marketplaces. Start free, upgrade when you are ready.
+            STAYESCAPE is built for independent owners who want a premium presence without the clutter of mass marketplaces. Start free, upgrade when you are ready.
           </p>
         </Reveal>
 

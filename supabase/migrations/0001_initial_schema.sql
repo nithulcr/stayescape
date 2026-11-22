@@ -1,4 +1,4 @@
--- STAYSCAPE initial schema
+-- STAYESCAPE initial schema
 -- Run with: supabase db push / paste into Supabase SQL editor.
 
 create extension if not exists pgcrypto;
