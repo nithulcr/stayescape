@@ -53,9 +53,6 @@ export async function POST(request: NextRequest) {
   if (SUCCESS_EVENTS.has(event.eventType)) {
     const razorpayPaymentId = event.paymentId ?? payment.razorpay_payment_id;
     if (!razorpayPaymentId) return NextResponse.json({ received: true, ignored: true });
-    if (payment.razorpay_payment_id && payment.razorpay_payment_id !== razorpayPaymentId) {
-      return NextResponse.json({ error: "Payment id does not match this order." }, { status: 422 });
-    }
 
     const gatewayPayment = await fetchRazorpayPayment(razorpayPaymentId);
     if (!gatewayPayment) {

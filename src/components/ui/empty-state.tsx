@@ -26,7 +26,7 @@ export function EmptyState({
       <h3 className="font-serif text-xl text-forest-deep">{title}</h3>
       <p className="mt-2 max-w-md text-sm text-muted">{description}</p>
       {actionLabel && actionHref && (
-        <Link href={actionHref} className="btn-primary mt-6">
+        <Link href={actionHref} className="btn-secondary mt-6">
           {actionLabel}
           <ArrowRight size={15} />
         </Link>

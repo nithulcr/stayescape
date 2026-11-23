@@ -5,6 +5,7 @@ import { getBillingDurationMonths } from "../src/lib/plans/billing-cycle.ts";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const migration = read("../supabase/migrations/0013_payment_security.sql");
+const retryMigration = read("../supabase/migrations/0025_allow_retry_after_failed_payment.sql");
 const initial = read("../supabase/migrations/0001_initial_schema.sql");
 const verifyRoute = read("../src/app/api/payments/verify/route.ts");
 const webhookRoute = read("../src/app/api/payments/webhook/route.ts");
@@ -48,6 +49,20 @@ test("concurrent verification and webhook processing are serialized", () => {
 test("existing active subscriptions are renewed instead of reset", () => {
   assert.match(migration, /greatest\(now\(\), coalesce\(v_subscription\.expires_at, now\(\)\)\)/);
   assert.match(migration, /auto_renew = false/);
+});
+
+test("a captured retry can replace a failed payment attempt on the same order", () => {
+  assert.match(retryMigration, /create or replace function public\.activate_paid_subscription/);
+  assert.match(retryMigration, /where id = p_payment_id for update/);
+  assert.match(retryMigration, /if v_payment\.status = 'success' then/);
+  assert.match(retryMigration, /set razorpay_payment_id = p_razorpay_payment_id/);
+  assert.match(retryMigration, /status = 'success'/);
+  assert.doesNotMatch(retryMigration, /Payment id does not match this order/);
+  assert.doesNotMatch(retryMigration, /v_payment\.razorpay_payment_id <> p_razorpay_payment_id/);
+
+  assert.match(webhookRoute, /checkRazorpayPayment\(/);
+  assert.match(webhookRoute, /const gatewayPayment = await fetchRazorpayPayment\(razorpayPaymentId\)/);
+  assert.doesNotMatch(webhookRoute, /Payment id does not match this order/);
 });
 
 test("client code never contains the Razorpay secret", () => {

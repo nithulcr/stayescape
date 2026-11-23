@@ -13,7 +13,7 @@ export default function VerifyPage() {
         <p className="mt-3 text-sm text-muted">
           Your account is ready. Sign in to continue to your dashboard.
         </p>
-        <Link href="/login" className="btn-primary mt-6 w-full justify-center">
+        <Link href="/login" className="btn-secondary mt-6 w-full justify-center">
           Sign in
         </Link>
       </div>

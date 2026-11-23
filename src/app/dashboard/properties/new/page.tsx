@@ -46,7 +46,7 @@ export default async function NewPropertyPage() {
           <p className="mt-2 text-sm text-muted">
             Your {plan.limits.planName} plan allows {plan.limits.maxProperties} properties. Upgrade to Premium to manage up to {planLimits.premium.maxProperties} properties on your owner account.
           </p>
-          <Link href="/dashboard/subscription" className="btn-primary mt-6">View upgrade options</Link>
+          <Link href="/dashboard/subscription" className="btn-secondary mt-6">View upgrade options</Link>
         </div>
       )}
     </div>

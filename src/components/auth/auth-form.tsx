@@ -71,7 +71,7 @@ export function AuthForm({
       <div className="surface-card p-8">
         <h1 className="font-serif text-2xl text-forest-deep">Check your inbox</h1>
         <p className="mt-3 text-sm text-muted">{state.message}</p>
-        <Link href="/login" className="btn-primary mt-6 w-full justify-center">
+        <Link href="/login" className="btn-secondary mt-6 w-full justify-center">
           Go to sign in
         </Link>
       </div>
