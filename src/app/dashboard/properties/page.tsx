@@ -10,7 +10,7 @@ import { getOwnerProperties } from "@/lib/data/owner";
 import { getPlanContextForUser } from "@/lib/plans/limits";
 import { canCreateProperty } from "@/lib/plans/property-limits";
 import { fallbackPropertyImage } from "@/lib/media";
-import { formatINR } from "@/lib/utils";
+import { formatINR, isPropertyPubliclyVisible } from "@/lib/utils";
 
 export default async function OwnerPropertiesPage() {
   const { user } = await requireOwner();
@@ -84,7 +84,7 @@ export default async function OwnerPropertiesPage() {
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-serif text-xl text-forest-deep">{property.name}</h2>
                   <StatusPill status={property.status} />
-                  {property.status === "approved" && (
+                  {isPropertyPubliclyVisible(property) && (
                     <StatusPill status={property.is_published ? "published" : "unpublished"}>
                       {property.is_published ? "Published" : "Unpublished"}
                     </StatusPill>
@@ -100,7 +100,7 @@ export default async function OwnerPropertiesPage() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {property.status === "approved" && (
+                {isPropertyPubliclyVisible(property) && (
                   <Link href={`/properties/${property.slug}`} target="_blank" className="btn-secondary !px-3 !py-2">
                     <Eye size={14} /> View
                   </Link>

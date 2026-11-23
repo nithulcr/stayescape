@@ -18,7 +18,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-gold-soft">STAYESCAPE</p>
               <h2 className="display-title mt-4 max-w-md text-4xl">Discover. Stay. Experience.</h2>
-              <p className="mt-4 max-w-md text-sm leading-relaxed text-white/65">
+              <p className="mt-4 max-w-md text-sm text-white/65">
                 A calmer way to find distinctive stays and manage your own place in Kerala.
               </p>
             </div>

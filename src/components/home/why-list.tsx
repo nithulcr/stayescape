@@ -40,9 +40,9 @@ export function WhyList() {
           {features.map((feature, index) => (
             <Reveal key={feature.title} delay={index * 0.06}>
               <div className="surface-card bg-sand/40 h-full p-6">
-                <feature.icon size={22} className="text-gold" />
+                <feature.icon size={30} className="text-gold" />
                 <h3 className="mt-4 font-serif text-lg text-forest-deep">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{feature.text}</p>
+                <p className="mt-2 text-sm text-muted">{feature.text}</p>
               </div>
             </Reveal>
           ))}

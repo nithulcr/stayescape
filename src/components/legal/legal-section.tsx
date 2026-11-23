@@ -4,7 +4,7 @@ export function LegalSection({ section }: { section: LegalSectionType }) {
   return (
     <section id={section.id} className="scroll-mt-28 border-t border-forest/10 pt-8 first:border-0 first:pt-0">
       <h2 className="font-serif text-2xl text-forest-deep md:text-3xl">{section.title}</h2>
-      <div className="mt-4 space-y-4 text-sm leading-relaxed text-charcoal/75 md:text-base">
+      <div className="mt-4 space-y-4 text-sm text-charcoal/75 md:text-base">
         {section.paragraphs.map((paragraph, index) => (
           <p key={index}>{paragraph}</p>
         ))}

@@ -50,7 +50,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
           <p className="mt-6 text-[0.7rem] uppercase tracking-[0.22em] text-gold-soft">{destination.state}</p>
           <h1 className="display-title mt-2 text-[clamp(2.6rem,7vw,4.8rem)]">{destination.name}</h1>
           {destination.short_description && (
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/80 md:text-base">
+            <p className="mt-4 max-w-2xl text-sm text-white/80 md:text-base">
               {destination.short_description}
             </p>
           )}
@@ -61,7 +61,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
         <div className="site-container grid gap-10 lg:grid-cols-[1.4fr_0.6fr]">
           <div>
             <p className="eyebrow">About {destination.name}</p>
-            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-charcoal/75 md:text-base">
+            <p className="mt-4 max-w-3xl text-sm text-charcoal/75 md:text-base">
               {destination.description ?? destination.short_description ?? `Explore beautiful stays in ${destination.name}.`}
             </p>
           </div>

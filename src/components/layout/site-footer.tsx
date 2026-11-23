@@ -48,7 +48,7 @@ const linkGroups = [
 export function SiteFooter() {
   return (
     <footer className="bg-forest-deep text-white">
-      <div className="site-container grid gap-12 pt-14 lg:pt-20 pb-8 lg:pb-10 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] ">
+      <div className="site-container grid gap-6 md:gap-12 pt-14 lg:pt-20 pb-8 lg:pb-10 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] ">
         <div className="max-w-sm">
           <div>
             <Link
@@ -65,7 +65,7 @@ export function SiteFooter() {
               />
             </Link>
           </div>
-          <p className="mt-5 text-sm leading-relaxed text-white/65">
+          <p className="mt-5 text-sm text-white/65">
             {brand.description}
           </p>
           <p className="mt-3 text-xs uppercase tracking-[0.2em] text-gold">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { MessageSquareText, PenLine, Star } from "lucide-react";
 import { ReviewForm } from "@/components/properties/review-form";
 import { ReportReviewForm } from "@/components/properties/report-review-form";
@@ -35,11 +35,13 @@ export function ReviewList({
   const [successMessage, setSuccessMessage] = useState("");
   const [notice, setNotice] = useState("");
 
-  const ownReview = reviews.find(
-    (review) =>
+  const isOwnReview = useCallback(
+    (review: PropertyReview) =>
       (Boolean(currentUserId) && review.user_id === currentUserId) ||
       (Boolean(guestToken) && review.guest_token === guestToken),
+    [currentUserId, guestToken],
   );
+  const ownReview = reviews.find(isOwnReview);
   const summary = useMemo(() => {
     const total = reviews.reduce((sum, review) => sum + review.rating, 0);
     return {
@@ -50,14 +52,14 @@ export function ReviewList({
 
   const visible = useMemo(() => {
     const items = reviews.filter(
-      (review) => review.status === "approved" || review.user_id === currentUserId,
+      (review) => review.status === "approved" || isOwnReview(review),
     );
     return items.sort((a, b) => {
       if (sort === "highest") return b.rating - a.rating;
       if (sort === "lowest") return a.rating - b.rating;
       return b.created_at.localeCompare(a.created_at);
     });
-  }, [reviews, currentUserId, sort]);
+  }, [reviews, isOwnReview, sort]);
 
   function openReviewForm() {
     setSuccessMessage("");
@@ -156,7 +158,7 @@ export function ReviewList({
                 <h3 className="mt-3 font-serif text-base text-forest-deep">{review.title}</h3>
               )}
               {review.comment && (
-                <p className="mt-2 text-sm leading-relaxed text-charcoal/75">{review.comment}</p>
+                <p className="mt-2 text-sm text-charcoal/75">{review.comment}</p>
               )}
               <div className="mt-4 border-t border-forest/10 pt-3">
                 <ReportReviewForm reviewId={review.id} guestToken={guestToken} />

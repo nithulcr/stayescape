@@ -1,6 +1,6 @@
 import "server-only";
 
-import { hasPropertyPublicationColumn } from "@/lib/supabase/schema";
+import { hasPropertyChangeRequestColumn, hasPropertyPublicationColumn } from "@/lib/supabase/schema";
 import { getServerClient } from "@/lib/supabase/server";
 import { districtOptions, isKeralaDistrict, keralaStateName, resolveDistrict } from "@/lib/config";
 import { fallbackPropertyImage } from "@/lib/media";
@@ -23,6 +23,18 @@ import type {
   PropertyReview,
   ReviewSummary,
 } from "@/types";
+
+const VISIBLE_PROPERTY_FILTER =
+  "status.eq.approved,and(status.eq.pending,has_requested_changes.eq.true)";
+
+function applyPublicPropertyVisibility<
+  Query extends {
+    or: (filters: string) => Query;
+    eq: (column: string, value: string) => Query;
+  },
+>(query: Query, changeRequestReady: boolean): Query {
+  return changeRequestReady ? query.or(VISIBLE_PROPERTY_FILTER) : query.eq("status", "approved");
+}
 
 type SupabaseServer = NonNullable<Awaited<ReturnType<typeof getServerClient>>>;
 
@@ -144,6 +156,7 @@ function toListItem(
     slug: property.slug,
     short_description: property.short_description,
     status: property.status,
+    has_requested_changes: property.has_requested_changes ?? false,
     is_featured: property.is_featured,
     is_published: property.is_published ?? true,
     publish_after_renewal: property.publish_after_renewal ?? false,
@@ -176,14 +189,15 @@ export async function getPublishedProperties(
   if (!supabase) return { items: [], total: 0 };
 
   try {
-    const [lookups, publicationReady] = await Promise.all([
+    const [lookups, publicationReady, changeRequestReady] = await Promise.all([
       getLookups(supabase),
       hasPropertyPublicationColumn(supabase),
+      hasPropertyChangeRequestColumn(supabase),
     ]);
-    let query = supabase
-      .from("properties")
-      .select("*", { count: "exact" })
-      .eq("status", "approved");
+    let query = applyPublicPropertyVisibility(
+      supabase.from("properties").select("*", { count: "exact" }),
+      changeRequestReady,
+    );
     if (publicationReady) query = query.eq("is_published", true);
 
     const search = sanitizeSearch(filters.q);
@@ -307,7 +321,7 @@ export async function getRecentlyAddedProperties(limit = 3): Promise<PropertyLis
   return items;
 }
 
-export async function getTopRatedProperties(limit = 6, minimumReviews = 3): Promise<PropertyListItem[]> {
+export async function getTopRatedProperties(limit = 6, minimumReviews = 1): Promise<PropertyListItem[]> {
   const supabase = await getServerClient();
   if (!supabase) return [];
 
@@ -317,20 +331,19 @@ export async function getTopRatedProperties(limit = 6, minimumReviews = 3): Prom
       .select("property_id,rating")
       .eq("status", "approved");
     const stats = summarizeStats((data ?? []) as { property_id: string; rating: number }[]);
-    const qualified = stats
-      .filter((stat) => stat.count >= minimumReviews)
-      .sort((a, b) => b.average - a.average || b.count - a.count)
-      .slice(0, limit);
+    const qualified = stats.filter((stat) => stat.count >= minimumReviews);
 
-    if (!qualified.length) return getFeaturedProperties(limit);
+    if (!qualified.length) return [];
 
     const propertyIds = qualified.map((stat) => stat.property_id);
-    const publicationReady = await hasPropertyPublicationColumn(supabase);
-    let propertyQuery = supabase
-      .from("properties")
-      .select("*")
-      .in("id", propertyIds)
-      .eq("status", "approved");
+    const [publicationReady, changeRequestReady] = await Promise.all([
+      hasPropertyPublicationColumn(supabase),
+      hasPropertyChangeRequestColumn(supabase),
+    ]);
+    let propertyQuery = applyPublicPropertyVisibility(
+      supabase.from("properties").select("*").in("id", propertyIds),
+      changeRequestReady,
+    );
     if (publicationReady) propertyQuery = propertyQuery.eq("is_published", true);
     const { data: propertyData } = await propertyQuery;
     const propertyMap = new Map(
@@ -339,7 +352,7 @@ export async function getTopRatedProperties(limit = 6, minimumReviews = 3): Prom
     const properties = propertyIds
       .map((id) => propertyMap.get(id))
       .filter((property): property is PropertyRow => Boolean(property));
-    if (!properties.length) return getFeaturedProperties(limit);
+    if (!properties.length) return [];
 
     const [lookups, images, amenities] = await Promise.all([
       getLookups(supabase),
@@ -347,7 +360,32 @@ export async function getTopRatedProperties(limit = 6, minimumReviews = 3): Prom
       getAmenitiesForProperties(supabase, propertyIds),
     ]);
     const statMap = new Map(qualified.map((stat) => [stat.property_id, stat]));
-    return properties.map((property) =>
+    const premiumChecks = await Promise.all(
+      properties.map(async (property) => {
+        const { data: isPremium } = await supabase.rpc("property_has_active_premium", {
+          p_property_id: property.id,
+        });
+        return { id: property.id, isPremium: isPremium === true };
+      }),
+    );
+    const premiumIds = new Set(
+      premiumChecks.filter((check) => check.isPremium).map((check) => check.id),
+    );
+    const priority = (property: PropertyRow) =>
+      property.is_featured || property.plan_type === "premium" || premiumIds.has(property.id) ? 1 : 0;
+    const sorted = properties
+      .sort((a, b) => {
+        const statA = statMap.get(a.id);
+        const statB = statMap.get(b.id);
+        return (
+          (statB?.average ?? 0) - (statA?.average ?? 0) ||
+          (statB?.count ?? 0) - (statA?.count ?? 0) ||
+          priority(b) - priority(a)
+        );
+      })
+      .slice(0, limit);
+
+    return sorted.map((property) =>
       toListItem(
         property,
         lookups,
@@ -357,7 +395,7 @@ export async function getTopRatedProperties(limit = 6, minimumReviews = 3): Prom
       ),
     );
   } catch {
-    return getFeaturedProperties(limit);
+    return [];
   }
 }
 
@@ -413,12 +451,14 @@ export async function getPropertyBySlug(
   if (!supabase) return null;
 
   try {
-    const publicationReady = await hasPropertyPublicationColumn(supabase);
-    let propertyQuery = supabase
-      .from("properties")
-      .select("*")
-      .eq("slug", slug)
-      .eq("status", "approved");
+    const [publicationReady, changeRequestReady] = await Promise.all([
+      hasPropertyPublicationColumn(supabase),
+      hasPropertyChangeRequestColumn(supabase),
+    ]);
+    let propertyQuery = applyPublicPropertyVisibility(
+      supabase.from("properties").select("*").eq("slug", slug),
+      changeRequestReady,
+    );
     if (publicationReady) propertyQuery = propertyQuery.eq("is_published", true);
     const { data } = await propertyQuery.maybeSingle();
     const property = data as PropertyRow | null;
@@ -549,18 +589,20 @@ export async function getDistrictSummaries(): Promise<DistrictSummary[]> {
   const supabase = await getServerClient();
   if (!supabase) return [];
 
-  const publicationReady = await hasPropertyPublicationColumn(supabase);
-  const propertiesQuery = supabase
-    .from("properties")
-    .select("district,destination_id")
-    .eq("status", "approved");
-  const [properties, destinations] = await Promise.all([
-    publicationReady ? propertiesQuery.eq("is_published", true) : propertiesQuery,
+  const [publicationReady, changeRequestReady, destinations] = await Promise.all([
+    hasPropertyPublicationColumn(supabase),
+    hasPropertyChangeRequestColumn(supabase),
     getDestinations(),
   ]);
+  let propertiesQuery = applyPublicPropertyVisibility(
+    supabase.from("properties").select("district,destination_id"),
+    changeRequestReady,
+  );
+  if (publicationReady) propertiesQuery = propertiesQuery.eq("is_published", true);
+  const { data: properties } = await propertiesQuery;
 
   const grouped = new Map<string, { count: number; destinationId: string | null }>();
-  for (const property of (properties.data ?? []) as Pick<PropertyRow, "district" | "destination_id">[]) {
+  for (const property of (properties ?? []) as Pick<PropertyRow, "district" | "destination_id">[]) {
     if (!isKeralaDistrict(property.district)) continue;
     const current = grouped.get(property.district) ?? { count: 0, destinationId: null };
     grouped.set(property.district, {

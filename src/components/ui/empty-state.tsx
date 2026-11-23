@@ -24,7 +24,7 @@ export function EmptyState({
         {icon ?? <MapPin size={20} />}
       </div>
       <h3 className="font-serif text-xl text-forest-deep">{title}</h3>
-      <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">{description}</p>
+      <p className="mt-2 max-w-md text-sm text-muted">{description}</p>
       {actionLabel && actionHref && (
         <Link href={actionHref} className="btn-primary mt-6">
           {actionLabel}

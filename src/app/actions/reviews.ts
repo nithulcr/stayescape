@@ -96,7 +96,7 @@ export async function submitReviewAction(
   }
 
   revalidatePath(`/properties/${property.slug}`);
-  return { ok: true, message: "Thank you. Your review was submitted for moderation." };
+  return { ok: true, message: "Thank you. Your review was submitted." };
 }
 
 export async function updateReviewAction(
@@ -159,7 +159,7 @@ export async function updateReviewAction(
   if (error) return { ok: false, message: error.message };
 
   if (property) revalidatePath(`/properties/${property.slug}`);
-  return { ok: true, message: "Your review was updated and sent for moderation." };
+  return { ok: true, message: "Your review was updated." };
 }
 
 export async function deleteReviewAction(formData: FormData) {

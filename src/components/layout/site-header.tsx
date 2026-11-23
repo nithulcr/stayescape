@@ -62,7 +62,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-forest/10 bg-ivory/95 backdrop-blur-md">
-      <div className="site-container flex h-[90px] items-center justify-between gap-6">
+      <div className="site-container flex h-[75px] md:h-[85px] items-center justify-between gap-6">
         <Link
           href="/"
           className="flex items-center gap-2.5"
@@ -73,12 +73,12 @@ export function SiteHeader() {
             width="300"
             height="70"
             alt={user ? user.name : "STAYESCAPE"}
-            className="object-contain items-start w-fit h-[65px]"
+            className="object-contain items-start w-fit h-[50px] md:h-[65px]"
           />
         </Link>
 
         <nav
-          className="hidden items-center gap-7 lg:flex"
+          className="hidden items-center gap-7 lg:flex h-full "
           aria-label="Primary navigation"
         >
           {links.map((link) => {
@@ -91,13 +91,13 @@ export function SiteHeader() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "relative py-2 text-[.95rem] font-[400] text-charcoal/75 transition-colors hover:text-forest",
+                  "relative py-2 text-[.95rem] font-[400] text-charcoal/75 transition-colors hover:text-forest h-full items-center flex",
                   active && "text-forest",
                 )}
               >
                 {link.label}
                 {active && (
-                  <span className="absolute inset-x-0 -bottom-0.5 h-px bg-gold" />
+                  <span className="absolute inset-x-0 -bottom-[0px] h-[.09rem] bg-gold" />
                 )}
               </Link>
             );
@@ -121,7 +121,7 @@ export function SiteHeader() {
               <form action={logoutAction}>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 px-1 text-xs font-medium text-muted hover:text-forest"
+                  className="inline-flex items-center btn-primary gap-1.5 !px-4 !py-2"
                 >
                   <LogOut size={14} /> Logout
                 </button>
@@ -131,7 +131,7 @@ export function SiteHeader() {
             <>
               <Link
                 href="/login"
-                className="px-2 text-sm font-medium text-forest hover:text-forest-soft"
+                className="px-2 text-sm font-medium btn-primary text-forest hover:text-forest-soft"
               >
                 Login
               </Link>

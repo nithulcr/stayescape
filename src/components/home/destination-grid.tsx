@@ -7,9 +7,11 @@ import type { DestinationRow } from "@/types/database.types";
 export function DestinationGrid({
   destinations,
   limit,
+  slider = false,
 }: {
   destinations: DestinationRow[];
   limit?: number;
+  slider?: boolean;
 }) {
   const visibleDestinations = typeof limit === "number" ? destinations.slice(0, limit) : destinations;
 
@@ -25,7 +27,13 @@ export function DestinationGrid({
   }
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div
+      className={
+        slider
+          ? "mobile-card-slider gap-5 sm:grid-cols-2 lg:grid-cols-4 "
+          : "grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
+      }
+    >
       {visibleDestinations.map((destination, index) => {
         const image =
           destination.image_url || (media[destination.slug as keyof typeof media] as string | undefined) || media.resort;
@@ -49,7 +57,7 @@ export function DestinationGrid({
               </span>
               <h3 className="mt-1.5 font-serif text-xl">{destination.name}</h3>
               {destination.short_description && (
-                <p className="mt-1 line-clamp-2 text-xs text-white/70">{destination.short_description}</p>
+                <p className="mt-2 line-clamp-2 text-xs text-white/80">{destination.short_description}</p>
               )}
             </div>
             <span className="absolute right-4 top-4 flex h-8 w-8 translate-y-1 items-center justify-center rounded-full bg-ivory/90 text-forest opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">

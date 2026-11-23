@@ -38,6 +38,7 @@ export type PropertyListItem = {
   slug: string;
   short_description: string | null;
   status: string;
+  has_requested_changes: boolean;
   is_featured: boolean;
   is_published: boolean;
   publish_after_renewal: boolean;

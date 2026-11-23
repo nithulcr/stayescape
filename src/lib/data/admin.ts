@@ -240,6 +240,7 @@ export type AdminPropertyFilters = {
   status?: string;
   q?: string;
   district?: string;
+  changeRequestsOnly?: boolean;
 };
 
 export async function getAllProperties(filters: AdminPropertyFilters = {}) {
@@ -249,6 +250,7 @@ export async function getAllProperties(filters: AdminPropertyFilters = {}) {
   let query = supabase.from("properties").select("*").order("created_at", { ascending: false });
   if (filters.status) query = query.eq("status", filters.status as PropertyRow["status"]);
   if (filters.district) query = query.eq("district", filters.district);
+  if (filters.changeRequestsOnly) query = query.eq("has_requested_changes", true);
   const term = filters.q?.trim();
   if (term) query = query.or(`name.ilike.*${term}*,district.ilike.*${term}*`);
 

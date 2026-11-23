@@ -25,7 +25,7 @@ export function AccountDeletionForm({ email }: { email: string }) {
     <form action={formAction} className="surface-card mt-8 grid gap-4 p-6 md:p-8">
       <div>
         <h2 className="font-serif text-xl text-forest-deep">Confirm deletion request</h2>
-        <p className="mt-1 text-xs leading-relaxed text-muted">
+        <p className="mt-1 text-xs text-muted">
           This action signs you out and starts the deletion workflow. Type DELETE exactly to confirm.
         </p>
       </div>

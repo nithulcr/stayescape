@@ -45,14 +45,14 @@ export function DashboardShell({
           {profile?.role === "super_admin" ? (
             <div className="mt-6 rounded-xl border border-ivory/10 bg-ivory/5 p-4 text-white">
               <p className="text-[0.65rem] uppercase tracking-[0.24em] text-gold-soft">Super Admin</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-white/70">
+              <p className="mt-1.5 text-xs text-white/70">
                 All features are enabled by your administrator role.
               </p>
             </div>
           ) : (
             <div className="mt-6 rounded-xl border border-ivory/10 bg-ivory/5 p-4 text-white">
               <p className="text-[0.65rem] uppercase tracking-[0.24em] text-gold-soft">Need more room?</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-white/70">
+              <p className="mt-1.5 text-xs text-white/70">
                 Premium owners can list up to three properties.
               </p>
               <Link

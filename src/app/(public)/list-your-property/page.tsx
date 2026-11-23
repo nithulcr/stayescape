@@ -44,7 +44,7 @@ export default function ListYourPropertyPage() {
             <h1 className="display-title mt-4 text-[clamp(2.5rem,6vw,4.4rem)]">
               Put your property on the map.
             </h1>
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/75 md:text-base">
+            <p className="mt-5 max-w-xl text-sm text-white/75 md:text-base">
               STAYESCAPE connects independent owners with travellers who care about setting, character and thoughtful hospitality.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -86,7 +86,7 @@ export default function ListYourPropertyPage() {
                 <span className="text-xs font-semibold text-gold">0{index + 1}</span>
                 <step.icon size={22} className="mt-3 text-forest" />
                 <h3 className="mt-3 font-serif text-lg text-forest-deep">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{step.text}</p>
+                <p className="mt-2 text-sm text-muted">{step.text}</p>
               </div>
             ))}
           </div>

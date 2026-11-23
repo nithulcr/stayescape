@@ -25,15 +25,30 @@ const statusOptions = [
 export default async function AdminPropertiesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string; district?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; district?: string; view?: string }>;
 }) {
-  const { status, q, district } = await searchParams;
+  const { status, q, district, view } = await searchParams;
+  const activeView = view === "requests" ? "requests" : "active";
   const { profile } = await requireAdmin();
   const canChangeOwner = isSuperAdminRole(profile?.role);
   const [properties, owners] = await Promise.all([
-    getAllProperties({ status, q, district }),
+    getAllProperties({
+      status,
+      q,
+      district,
+      changeRequestsOnly: activeView === "requests",
+    }),
     canChangeOwner ? getPropertyOwnerCandidates() : Promise.resolve([]),
   ]);
+
+  const viewHref = (nextView: "active" | "requests") => {
+    const params = new URLSearchParams();
+    params.set("view", nextView);
+    if (status) params.set("status", status);
+    if (q) params.set("q", q);
+    if (district) params.set("district", district);
+    return `/admin/properties?${params.toString()}`;
+  };
 
   return (
     <>
@@ -51,7 +66,31 @@ export default async function AdminPropertiesPage({
         </Link>
       </div>
 
+      <div className="mt-6 flex gap-2 border-b border-forest/10">
+        <Link
+          href={viewHref("active")}
+          className={`border-b-2 px-4 py-2 text-sm font-semibold ${
+            activeView === "active"
+              ? "border-forest text-forest"
+              : "border-transparent text-muted hover:text-forest"
+          }`}
+        >
+          Active
+        </Link>
+        <Link
+          href={viewHref("requests")}
+          className={`border-b-2 px-4 py-2 text-sm font-semibold ${
+            activeView === "requests"
+              ? "border-forest text-forest"
+              : "border-transparent text-muted hover:text-forest"
+          }`}
+        >
+          Requested changes
+        </Link>
+      </div>
+
       <form className="mt-6 flex flex-wrap items-end gap-3">
+        <input type="hidden" name="view" value={activeView} />
         <label className="flex flex-col gap-1 text-xs text-muted">
           Search
           <input
@@ -95,7 +134,7 @@ export default async function AdminPropertiesPage({
           Filter
         </button>
         <Link
-          href="/admin/properties"
+          href={`/admin/properties?view=${activeView}`}
           className="text-xs text-muted hover:text-forest"
         >
           Reset
@@ -124,6 +163,11 @@ export default async function AdminPropertiesPage({
                     <StatusPill status={property.status} />
                     {property.is_featured && (
                       <StatusPill status="premium">Featured</StatusPill>
+                    )}
+                    {property.has_requested_changes && (
+                      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                        Requested changes
+                      </span>
                     )}
                   </div>
                   <p className="mt-1 text-xs text-muted">
@@ -270,8 +314,12 @@ export default async function AdminPropertiesPage({
       ) : (
         <div className="mt-8">
           <EmptyState
-            title="No properties found"
-            description="Owner submissions will appear here for review."
+            title={activeView === "requests" ? "No requested changes" : "No properties found"}
+            description={
+              activeView === "requests"
+                ? "Owner edits to approved properties will appear here for review."
+                : "Owner submissions will appear here for review."
+            }
           />
         </div>
       )}

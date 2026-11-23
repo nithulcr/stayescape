@@ -28,7 +28,7 @@ export function AdminShell({
               alt="logo"
               width="300"
               height="70"
-              className="object-contain items-start w-fit h-[65px]"
+              className="object-contain items-start w-fit h-[50px] md:h-[65px]"
             />
           </Link>
         </div>

@@ -75,7 +75,7 @@ export default async function AdminReviewsPage({
                 <h3 className="mt-4 font-serif text-lg text-forest-deep">{review.title}</h3>
               )}
               {review.comment && (
-                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-charcoal/75">
+                <p className="mt-3 whitespace-pre-line text-sm text-charcoal/75">
                   {review.comment}
                 </p>
               )}

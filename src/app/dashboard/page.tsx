@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Building2, Inbox, Sparkles } from "lucide-react";
+import { ArrowRight, Building2, Inbox, MessageSquareText, Sparkles } from "lucide-react";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusPill } from "@/components/ui/status-pill";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -22,7 +22,7 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-3xl">
         <p className="eyebrow">Overview</p>
         <h1 className="display-title mt-3 text-4xl">Welcome to STAYESCAPE.</h1>
-        <p className="mt-4 text-sm leading-relaxed text-muted">
+        <p className="mt-4 text-sm text-muted">
           Your account is ready. Explore distinctive stays across Kerala, or switch to an owner account to list your own property.
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -67,10 +67,11 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Total properties" value={stats.total} icon={Building2} />
         <StatCard label="Published" value={stats.published} icon={Sparkles} />
-        <StatCard label="Pending review" value={stats.pending} icon={Inbox} />
+        <StatCard label="Pending property" value={stats.pending} icon={Inbox} />
+        <StatCard label="Pending reviews" value={stats.pendingReviews} icon={MessageSquareText} />
         <StatCard label="Enquiries" value={stats.enquiries} icon={Inbox} />
       </div>
 

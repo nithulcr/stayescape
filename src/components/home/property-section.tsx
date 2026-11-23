@@ -25,15 +25,15 @@ export function PropertySection({
           <div className="max-w-2xl">
             <p className="eyebrow">{eyebrow}</p>
             <h2 className="section-title mt-3">{title}</h2>
-            <p className="mt-3 text-sm leading-relaxed text-muted md:text-base">{description}</p>
+            <p className="mt-3 text-sm text-muted md:text-base">{description}</p>
           </div>
-          <Link href={href} className="btn-secondary shrink-0">
+          <Link href={href} className="btn-secondary shrink-0 hidden md:inline-flex">
             View all stays <ArrowRight size={15} />
           </Link>
         </div>
 
         {items.length ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mobile-card-slider gap-6 md:grid md:grid-cols-2 lg:grid-cols-3">
             {items.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
@@ -41,6 +41,9 @@ export function PropertySection({
         ) : (
           <div className="surface-card px-6 py-14 text-center text-sm text-muted">{emptyMessage}</div>
         )}
+        <Link href={href} className="btn-secondary shrink-0 md:hidden mt-4 inline-flex w-full justify-center">
+            View all stays <ArrowRight size={15} />
+          </Link>
       </div>
     </section>
   );

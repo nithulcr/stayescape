@@ -57,7 +57,7 @@ export default async function AdminEnquiriesPage() {
                   )}
                 </div>
               )}
-              <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-charcoal/75">{enquiry.message}</p>
+              <p className="mt-4 whitespace-pre-line text-sm text-charcoal/75">{enquiry.message}</p>
               <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted">
                 <a href={`mailto:${enquiry.email}`} className="inline-flex items-center gap-1.5 hover:text-forest">
                   <Mail size={13} /> {enquiry.email}

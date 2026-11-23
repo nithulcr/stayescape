@@ -32,14 +32,14 @@ export default async function HomePage() {
     <>
       <HomeHero destinations={destinations} categories={categories} />
 
-      <section className="section-space">
-        <div className="site-container">
+      <section className="section-space bg-light-ivory ">
+        <div className="site-container   ">
           <Reveal>
             <div className="mb-9 flex flex-col justify-between gap-4 md:flex-row md:items-end">
               <div className="max-w-2xl">
                 <p className="eyebrow">Where to next</p>
                 <h2 className="section-title mt-3">Popular destinations.</h2>
-                <p className="mt-3 text-sm leading-relaxed text-muted md:text-base">
+                <p className="mt-3 text-sm text-muted md:text-base">
                   From cool hill stations to sunlit backwaters, find the corner of Kerala that feels like yours.
                 </p>
               </div>
@@ -47,20 +47,20 @@ export default async function HomePage() {
             </div>
           </Reveal>
           <Suspense fallback={null}>
-            <DestinationGrid destinations={destinations} limit={8} />
+            <DestinationGrid destinations={destinations} limit={8} slider />
           </Suspense>
         </div>
       </section>
 
       {districts.length > 0 && (
-        <section className="section-space bg-light-ivory">
+        <section className="section-space ">
           <div className="site-container">
             <Reveal>
               <div className="mb-9 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div className="max-w-2xl">
                   <p className="eyebrow">Browse locally</p>
                   <h2 className="section-title mt-3">Explore stays by district.</h2>
-                  <p className="mt-3 text-sm leading-relaxed text-muted md:text-base">
+                  <p className="mt-3 text-sm text-muted md:text-base">
                     Choose a Kerala district to see the stays currently available there.
                   </p>
                 </div>
@@ -95,7 +95,7 @@ export default async function HomePage() {
             <div className="mb-9 max-w-3xl">
               <p className="eyebrow">Stay your way</p>
               <h2 className="section-title mt-3">Explore property types.</h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted md:text-base max-w-xl">
+              <p className="mt-3 text-sm text-muted md:text-base max-w-xl">
                 Whether it is a tea estate bungalow or a private villa by the backwaters, there is a stay for every kind of escape.
               </p>
             </div>

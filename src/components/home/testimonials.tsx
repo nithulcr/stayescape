@@ -35,12 +35,12 @@ export function Testimonials() {
           <p className="eyebrow">Owner stories</p>
           <h2 className="section-title mt-3">Trusted by independent hosts.</h2>
         </div>
-        <div className="mt-10 grid gap-6 lg:grid-cols-3">
+        <div className="mobile-card-slider mt-10 gap-6 lg:grid lg:grid-cols-3">
           {testimonials.map((item, index) => (
             <Reveal key={item.name} delay={index * 0.07}>
               <figure className="surface-card flex h-full flex-col p-7">
                 <Quote size={26} className="text-gold/70" />
-                <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-charcoal/80">
+                <blockquote className="mt-4 flex-1 text-sm text-charcoal/80">
                   “{item.quote}”
                 </blockquote>
                 <figcaption className="mt-6 flex items-center gap-3 border-t border-forest/10 pt-5">

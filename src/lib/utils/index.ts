@@ -93,3 +93,15 @@ export function getDestinationImageStoragePath(publicUrl: string | null | undefi
     return null;
   }
 }
+
+export function isPropertyPubliclyVisible(property: {
+  status: string;
+  has_requested_changes?: boolean;
+  is_published?: boolean | null;
+}): boolean {
+  return (
+    (property.is_published ?? true) &&
+    (property.status === "approved" ||
+      (property.status === "pending" && Boolean(property.has_requested_changes)))
+  );
+}

@@ -70,7 +70,7 @@ export function AuthForm({
     return (
       <div className="surface-card p-8">
         <h1 className="font-serif text-2xl text-forest-deep">Check your inbox</h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted">{state.message}</p>
+        <p className="mt-3 text-sm text-muted">{state.message}</p>
         <Link href="/login" className="btn-primary mt-6 w-full justify-center">
           Go to sign in
         </Link>
@@ -82,7 +82,7 @@ export function AuthForm({
     <div>
       <p className="eyebrow">{text.eyebrow}</p>
       <h1 className="mt-3 font-serif text-3xl text-forest-deep">{text.title}</h1>
-      <p className="mt-2 text-sm leading-relaxed text-muted">{text.description}</p>
+      <p className="mt-2 text-sm text-muted">{text.description}</p>
 
       <form action={formAction} className="mt-8 grid gap-4">
         {next && mode === "login" && <input type="hidden" name="next" value={next} />}

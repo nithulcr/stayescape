@@ -27,7 +27,7 @@ export default async function PricingPage() {
       <div className="mx-auto max-w-3xl text-center">
         <p className="eyebrow">Pricing</p>
         <h1 className="display-title mt-3 text-[clamp(2.2rem,5vw,3.5rem)]">Start free. Grow when you are ready.</h1>
-        <p className="mt-4 text-sm leading-relaxed text-muted md:text-base">
+        <p className="mt-4 text-sm text-muted md:text-base">
           No setup fee. No listing fee. Upgrade only when you need more properties and richer presentation.
         </p>
       </div>
@@ -94,7 +94,7 @@ export default async function PricingPage() {
         </div>
       </div>
 
-      <div className="mx-auto mt-10 max-w-3xl text-center text-xs leading-relaxed text-muted">
+      <div className="mx-auto mt-10 max-w-3xl text-center text-xs text-muted">
         Payments are processed securely by Razorpay. Subscription activation happens only after a signed payment confirmation or verified webhook.
       </div>
     </div>

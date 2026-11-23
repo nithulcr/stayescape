@@ -33,7 +33,7 @@ export function EnquiryForm({
     return (
       <div className="surface-card p-6">
         <h3 className="font-serif text-xl text-forest-deep">Enquiry sent.</h3>
-        <p className="mt-2 text-sm leading-relaxed text-muted">{state.message}</p>
+        <p className="mt-2 text-sm text-muted">{state.message}</p>
       </div>
     );
   }
@@ -92,7 +92,7 @@ export function EnquiryForm({
       </label> */}
       {state.message && <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">{state.message}</p>}
       <SubmitButton priceOnRequest={priceOnRequest} />
-      <p className="text-center text-[0.7rem] leading-relaxed text-muted">
+      <p className="text-center text-[0.7rem] text-muted">
         Your details are shared only with the property owner for this enquiry.
       </p>
     </form>

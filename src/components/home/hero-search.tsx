@@ -32,9 +32,9 @@ export function HeroSearch({
   return (
     <form
       onSubmit={submit}
-      className="grid gap-3 rounded-xl bg-white/50 p-3 shadow-[0_24px_70px_-30px_rgba(8,32,25,0.6)] backdrop-blur md:grid-cols-[1.2fr_1fr_1fr_1fr_auto] md:items-center"
+      className="grid gap-3 rounded-lg bg-white/70 p-3 md:p-5 shadow-[0_24px_70px_-30px_rgba(8,32,25,0.6)] backdrop-blur md:grid-cols-[1.2fr_1fr_1fr_1fr_auto] md:items-center"
     >
-      <label className="block px-2 py-1">
+      <label className="block px-2 md:px-3 py-1">
         <span className="field-label !mb-1 !text-[0.65rem] !uppercase !tracking-wider">
           Where to?
         </span>
@@ -46,7 +46,7 @@ export function HeroSearch({
         />
       </label>
 
-      <label className="block border-t border-forest/10 px-2 py-1 md:border-l md:border-t-0">
+      <label className="block border-t border-forest/30 px-2 md:px-3 py-1 md:border-l  md:border-t-0">
         <span className="field-label !mb-1 !text-[0.65rem] !uppercase !tracking-wider">
           Destination
         </span>
@@ -64,7 +64,7 @@ export function HeroSearch({
         </select>
       </label>
 
-      <label className="block border-t border-forest/10 px-2 py-1 md:border-l md:border-t-0">
+      <label className="block border-t border-forest/30 px-2 md:px-3 py-1 md:border-l md:border-t-0">
         <span className="field-label !mb-1 !text-[0.65rem] !uppercase !tracking-wider">
           District
         </span>
@@ -80,7 +80,7 @@ export function HeroSearch({
         </select>
       </label>
 
-      <label className="block border-t border-forest/10 px-2 py-1 md:border-l md:border-t-0">
+      <label className="block border-t border-forest/30 px-2 md:px-3 py-1 md:border-l md:border-t-0">
         <span className="field-label !mb-1 !text-[0.65rem] !uppercase !tracking-wider">
           Stay type
         </span>
@@ -97,10 +97,10 @@ export function HeroSearch({
           ))}
         </select>
       </label>
-      <div className=" md:border-l border-forest/10 pl-3">
+      <div className=" md:border-l border-forest/30 pl-3">
         <button
           type="submit"
-          className="btn-primary h-12 w-full md:w-auto md:px-6 font-light"
+          className="btn-secondary h-12 w-full md:w-auto md:px-6"
         >
           <Search size={16} /> Search Property
         </button>

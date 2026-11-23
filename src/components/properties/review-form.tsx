@@ -66,8 +66,8 @@ export function ReviewForm({
         </h3>
         <p className="mt-1 text-xs text-muted">
           {existing
-            ? "Updated reviews are published again after admin moderation."
-            : "Your review is published after a quick admin moderation check."}
+            ? "Updated reviews are republished after moderation if required."
+            : "Your review is published immediately on free listings and reviewed by the owner on premium listings."}
         </p>
       </div>
 

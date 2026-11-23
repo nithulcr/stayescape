@@ -15,7 +15,7 @@ export default async function DestinationsPage() {
       <div className="mb-9 max-w-3xl">
         <p className="eyebrow"> Kerala destinations</p>
         <h1 className="display-title mt-3 text-[clamp(2.2rem,5vw,3.5rem)]">Where will you unwind?</h1>
-        <p className="mt-4 text-sm leading-relaxed text-muted md:text-base">
+        <p className="mt-4 text-sm text-muted md:text-base">
           Misty hills, backwaters, heritage streets and quiet beaches. Choose the mood, then find the stay.
         </p>
       </div>

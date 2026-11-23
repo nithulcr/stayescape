@@ -7,7 +7,7 @@ export function DistrictGrid({ districts }: { districts: DistrictSummary[] }) {
   if (!districts.length) return null;
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="mobile-card-slider gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {districts.map((district) => (
         <Link
           key={district.slug}

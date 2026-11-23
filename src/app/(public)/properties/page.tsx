@@ -60,7 +60,7 @@ export default async function PropertiesPage({
       <div className="mb-8 max-w-3xl">
         <p className="eyebrow">Explore</p>
         <h1 className="display-title mt-3 text-[clamp(2.2rem,5vw,3.5rem)]">Find a stay you love.</h1>
-        <p className="mt-4 text-sm leading-relaxed text-muted md:text-base">
+        <p className="mt-4 text-sm text-muted md:text-base">
           Every property here has been reviewed by our team. Filter by district, destination, stay type, amenities, price and rating.
         </p>
       </div>

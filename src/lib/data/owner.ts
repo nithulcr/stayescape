@@ -2,6 +2,7 @@ import "server-only";
 
 import { getServerClient } from "@/lib/supabase/server";
 import { fallbackPropertyImage } from "@/lib/media";
+import { isPropertyPubliclyVisible } from "@/lib/utils";
 import type {
   AmenityRow,
   CategoryRow,
@@ -9,7 +10,9 @@ import type {
   EnquiryRow,
   PaymentRow,
   PropertyImageRow,
+  ProfileRow,
   PropertyRow,
+  ReviewRow,
   SubscriptionRow,
   PlanRow,
 } from "@/types/database.types";
@@ -107,6 +110,7 @@ export async function getOwnerProperties(userId: string): Promise<PropertyListIt
       slug: property.slug,
       short_description: property.short_description,
       status: property.status,
+      has_requested_changes: property.has_requested_changes ?? false,
       is_featured: property.is_featured,
       is_published: property.is_published ?? true,
       publish_after_renewal: property.publish_after_renewal ?? false,
@@ -161,16 +165,63 @@ export async function getOwnerEnquiries(userId: string): Promise<OwnerEnquiry[]>
   }));
 }
 
+export type OwnerReview = ReviewRow & {
+  property_name: string;
+  property_slug: string;
+  reviewer_name: string;
+};
+
+export async function getOwnerReviews(userId: string): Promise<OwnerReview[]> {
+  const supabase = await getServerClient();
+  if (!supabase) return [];
+
+  const { data: properties } = await supabase
+    .from("properties")
+    .select("id,name,slug")
+    .eq("owner_id", userId);
+  const owned = (properties ?? []) as Pick<PropertyRow, "id" | "name" | "slug">[];
+  if (!owned.length) return [];
+
+  const propertyIds = owned.map((property) => property.id);
+  const [{ data }, { data: profiles }] = await Promise.all([
+    supabase
+      .from("reviews")
+      .select("*")
+      .in("property_id", propertyIds)
+      .order("created_at", { ascending: false }),
+    supabase.from("profiles").select("id,full_name"),
+  ]);
+  const propertyMap = new Map(owned.map((property) => [property.id, property]));
+  const profileMap = new Map(
+    ((profiles ?? []) as Pick<ProfileRow, "id" | "full_name">[]).map((profile) => [
+      profile.id,
+      profile.full_name,
+    ]),
+  );
+
+  return ((data ?? []) as ReviewRow[]).map((review) => ({
+    ...review,
+    property_name: propertyMap.get(review.property_id)?.name ?? "Property",
+    property_slug: propertyMap.get(review.property_id)?.slug ?? "",
+    reviewer_name:
+      (review.user_id ? profileMap.get(review.user_id) : null) ??
+      review.reviewer_name ??
+      "Guest traveller",
+  }));
+}
+
 export async function getOwnerStats(userId: string) {
-  const properties = await getOwnerProperties(userId);
-  const enquiries = await getOwnerEnquiries(userId);
+  const [properties, enquiries, reviews] = await Promise.all([
+    getOwnerProperties(userId),
+    getOwnerEnquiries(userId),
+    getOwnerReviews(userId),
+  ]);
   return {
     total: properties.length,
-    published: properties.filter(
-      (property) => property.status === "approved" && (property.is_published ?? true),
-    ).length,
+    published: properties.filter((property) => isPropertyPubliclyVisible(property)).length,
     pending: properties.filter((property) => property.status === "pending").length,
     rejected: properties.filter((property) => property.status === "rejected").length,
+    pendingReviews: reviews.filter((review) => review.status === "pending").length,
     enquiries: enquiries.length,
   };
 }

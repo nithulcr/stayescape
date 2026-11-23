@@ -31,7 +31,7 @@ export function HomeHero({
           <h1 className="display-title mt-5 text-[clamp(2.7rem,7vw,5rem)] uppercase leading-[1.3] ">
             Find Your Perfect Escape
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-xl  leading-relaxed text-white/80">
+          <p className="mx-auto mt-5 max-w-2xl text-xl  text-white/80">
             Discover beautiful resorts, villas, homestays and unique stays.
           </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[0.9rem] uppercase tracking-[0.14em] text-white/80">
@@ -43,7 +43,7 @@ export function HomeHero({
           </div>
         </div>
 
-        <div className="mx-auto  w-full max-w-5xl mt-10">
+        <div className="mx-auto  w-full max-w-6xl mt-10">
           <HeroSearch destinations={destinations} categories={categories} />
         </div>
       </div>

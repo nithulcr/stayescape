@@ -105,6 +105,8 @@ export type PropertyRow = Timestamps & {
   rejection_reason: string | null;
   submitted_at: string | null;
   approved_at: string | null;
+  has_requested_changes: boolean;
+  change_requested_at: string | null;
 };
 
 export type PropertyImageRow = {
@@ -399,6 +401,10 @@ export type Database = {
       };
       is_active_property_owner: {
         Args: { p_user_id: string };
+        Returns: boolean;
+      };
+      property_has_active_premium: {
+        Args: { p_property_id: string };
         Returns: boolean;
       };
       storage_property_path_is_owned: {

@@ -207,7 +207,7 @@ test("public reads and owner stats use the published flag when available", () =>
   assert.match(publicData, /hasPropertyPublicationColumn\(supabase\)/);
   assert.match(publicData, /if \(publicationReady\) query = query\.eq\("is_published", true\)/);
   assert.match(publicData, /is_published: property\.is_published \?\? true/);
-  assert.match(ownerData, /property\.status === "approved" && \(property\.is_published \?\? true\)/);
+  assert.match(ownerData, /isPropertyPubliclyVisible\(property\)/);
 });
 
 test("dashboard warns about expiry and offers property selection", () => {

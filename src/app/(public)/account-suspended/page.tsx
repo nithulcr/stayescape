@@ -13,7 +13,7 @@ export default function AccountSuspendedPage() {
       <div className="surface-card w-full p-8 text-center">
         <ShieldAlert className="mx-auto text-rose-600" size={36} />
         <h1 className="display-title mt-5 text-3xl">Account suspended</h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted">
+        <p className="mt-3 text-sm text-muted">
           This account is temporarily suspended. If you believe this is a mistake, contact us from the email address associated with your account.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
