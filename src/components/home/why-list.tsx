@@ -27,7 +27,7 @@ const features = [
 export function WhyList() {
   return (
     <section className="section-space bg-light-ivory">
-      <div className="site-container grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+      <div className="site-container grid gap-6 md:gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
         <Reveal>
           <p className="eyebrow">For property owners</p>
           <h2 className="section-title mt-3">A better way to fill your calendar.</h2>

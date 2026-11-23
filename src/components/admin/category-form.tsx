@@ -54,7 +54,7 @@ export function CategoryForm({ category }: { category?: CategoryRow }) {
           {state.message}
         </p>
       )}
-      <button type="submit" disabled={pending} className="btn-primary w-fit disabled:opacity-60">
+      <button type="submit" disabled={pending} className="btn-secondary  w-fit  disabled:opacity-60">
         <Save size={15} /> {pending ? "Saving..." : category ? "Update category" : "Add category"}
       </button>
     </form>

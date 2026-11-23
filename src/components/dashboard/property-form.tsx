@@ -528,7 +528,7 @@ export function PropertyForm({
         </p>
       )}
 
-      <button type="submit" disabled={pending} className="btn-primary w-fit disabled:opacity-60">
+      <button type="submit" disabled={pending} className="btn-secondary  w-fit  disabled:opacity-60">
         <Save size={15} /> {pending ? "Saving..." : property ? "Save changes" : "Create property"}
       </button>
     </form>

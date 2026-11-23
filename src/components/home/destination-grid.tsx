@@ -30,7 +30,7 @@ export function DestinationGrid({
     <div
       className={
         slider
-          ? "mobile-card-slider gap-5 sm:grid-cols-2 lg:grid-cols-4 "
+          ? "mobile-card-slider gap-5 sm:grid-cols-2 lg:grid-cols-4 mx-[-1.25rem] md:mx-0 px-[1.25rem] md:px-0"
           : "grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
       }
     >

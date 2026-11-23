@@ -29,7 +29,7 @@ export default async function AdminSettingsPage() {
           <h2 className="mt-1 font-serif text-2xl text-forest-deep">Property features</h2>
           <form action={addAmenityAction} className="mt-5 flex gap-2">
             <input name="name" required placeholder="New amenity name" className="input-field" />
-            <button type="submit" className="btn-primary shrink-0">Add</button>
+            <button type="submit" className="btn-secondary shrink-0">Add</button>
           </form>
           <div className="mt-5 flex flex-wrap gap-2">
             {amenities.length ? (

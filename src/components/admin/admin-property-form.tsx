@@ -67,7 +67,7 @@ export function AdminPropertyForm({ property }: { property: PropertyRow }) {
           {state.message}
         </p>
       )}
-      <button type="submit" disabled={pending} className="btn-primary w-fit disabled:opacity-60">
+      <button type="submit" disabled={pending} className="btn-secondary  w-fit  disabled:opacity-60">
         <Save size={15} /> {pending ? "Saving..." : "Save property"}
       </button>
     </form>

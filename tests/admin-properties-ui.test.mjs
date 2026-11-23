@@ -35,7 +35,7 @@ test("admin properties page separates requested changes from active properties",
 test("public card grids become swipeable sliders on mobile", () => {
   assert.match(globals, /\.mobile-card-slider \{[\s\S]*scroll-snap-type: x mandatory/);
   assert.match(globals, /\.mobile-card-slider > \* \{[\s\S]*scroll-snap-align: start/);
-  assert.match(globals, /@media \(min-width: 520px\) \{[\s\S]*\.mobile-card-slider/);
+  assert.match(globals, /@media \(min-width: 640px\) \{[\s\S]*\.mobile-card-slider/);
 
   const homeGridFiles = [
     "../src/components/home/property-section.tsx",

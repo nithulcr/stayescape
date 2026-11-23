@@ -43,7 +43,7 @@ export function HomeHero({
           </div>
         </div>
 
-        <div className="mx-auto  w-full max-w-6xl mt-10">
+        <div className="mx-auto  w-full max-w-5xl mt-10">
           <HeroSearch destinations={destinations} categories={categories} />
         </div>
       </div>

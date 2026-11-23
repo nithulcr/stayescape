@@ -43,12 +43,16 @@ export default async function HomePage() {
                   From cool hill stations to sunlit backwaters, find the corner of Kerala that feels like yours.
                 </p>
               </div>
-              <a href="#property-types" className="btn-secondary">Explore by type</a>
+              <Link href="#property-types" className="btn-secondary hidden md:inline-flex">
+                Explore by type
+              </Link>
             </div>
           </Reveal>
           <Suspense fallback={null}>
             <DestinationGrid destinations={destinations} limit={8} slider />
           </Suspense>
+              <Link href="#property-types" className="btn-secondary w-full mt-4 md:hidden">Explore by type</Link>
+
         </div>
       </section>
 
@@ -64,10 +68,12 @@ export default async function HomePage() {
                     Choose a Kerala district to see the stays currently available there.
                   </p>
                 </div>
-                <Link href="/properties" className="btn-secondary">View all stays</Link>
+                <Link href="/properties" className="btn-secondary hidden md:inline-flex">View all stays</Link>
               </div>
             </Reveal>
             <DistrictGrid districts={districts} />
+                <Link href="/properties" className="btn-secondary w-full mt-4 md:hidden">View all stays</Link>
+
           </div>
         </section>
       )}

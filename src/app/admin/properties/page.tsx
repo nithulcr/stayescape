@@ -189,14 +189,14 @@ export default async function AdminPropertiesPage({
                     {canChangeOwner && (
                       <form
                         action={changePropertyOwnerAdminAction}
-                        className="flex items-end gap-2"
+                        className="flex items-end gap-2 "
                       >
                         <input
                           type="hidden"
                           name="propertyId"
                           value={property.id}
                         />
-                        <label className="text-[0.65rem] uppercase tracking-wider text-muted">
+                        <label className="text-[0.65rem] uppercase tracking-wider text-muted w-[240px]">
                           Change owner
                           <select
                             name="ownerId"
@@ -212,7 +212,7 @@ export default async function AdminPropertiesPage({
                         </label>
                         <ConfirmSubmitButton
                           message={`Change the owner of "${property.name}"?`}
-                          className="btn-secondary !py-2"
+                          className="btn-primary !py-2"
                         >
                           Change owner
                         </ConfirmSubmitButton>
@@ -282,18 +282,18 @@ export default async function AdminPropertiesPage({
                 <div className="flex flex-col gap-2 lg:w-64">
                   <Link
                     href={`/admin/properties/${property.id}`}
-                    className="btn-secondary !py-2"
+                    className="btn-primary !py-2"
                   >
                     Edit details
                   </Link>
                   <Link
                     href={`/properties/${property.slug}`}
                     target="_blank"
-                    className="btn-secondary !py-2"
+                    className="btn-primary !py-2"
                   >
                     View property
                   </Link>
-                   <form className="btn-secondary !py-2" action={deletePropertyAdminAction}>
+                   <form className="btn-primary !py-2" action={deletePropertyAdminAction}>
                       <input
                         type="hidden"
                         name="propertyId"

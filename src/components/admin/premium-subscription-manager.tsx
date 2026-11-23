@@ -70,17 +70,17 @@ export function PremiumSubscriptionManager({ user }: { user: ManageableAdminUser
     <>
       <div className="flex flex-wrap gap-1">
         {user.canGrant ? (
-          <button type="button" onClick={() => openModal("grant")} className="btn-secondary !px-2 !py-1.5 text-xs">
+          <button type="button" onClick={() => openModal("grant")} className="btn-primary !px-2 !py-1.5 text-xs">
             Grant
           </button>
         ) : null}
         {user.canExtend ? (
-          <button type="button" onClick={() => openModal("extend")} className="btn-secondary !px-2 !py-1.5 text-xs">
+          <button type="button" onClick={() => openModal("extend")} className="btn-primary !px-2 !py-1.5 text-xs">
             Extend
           </button>
         ) : null}
         {user.canRevoke ? (
-          <button type="button" onClick={() => openModal("revoke")} className="btn-secondary !px-2 !py-1.5 text-xs text-rose-700">
+          <button type="button" onClick={() => openModal("revoke")} className="btn-primary !px-2 !py-1.5 text-xs text-rose-700">
             Revoke
           </button>
         ) : null}

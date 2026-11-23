@@ -159,7 +159,7 @@ export function ReviewForm({
         )}
 
         <div className="flex flex-wrap items-center gap-3">
-          <button type="submit" disabled={pending} className="btn-primary w-fit disabled:opacity-60">
+          <button type="submit" disabled={pending} className="btn-secondary  w-fit  disabled:opacity-60">
             {pending && <Loader2 size={15} className="animate-spin" />}
             {existing ? "Submit updated review" : "Submit review"}
           </button>

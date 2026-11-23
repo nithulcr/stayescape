@@ -33,10 +33,12 @@ export function PropertySection({
         </div>
 
         {items.length ? (
-          <div className="mobile-card-slider gap-6 md:grid md:grid-cols-2 lg:grid-cols-3">
+          <div className="mx-[-1.25rem] md:mx-0">
+            <div className="mobile-card-slider gap-4 md:gap-6 md:grid md:grid-cols-2 lg:grid-cols-3 px-[1.25rem] md:px-0">
             {items.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
+          </div>
           </div>
         ) : (
           <div className="surface-card px-6 py-14 text-center text-sm text-muted">{emptyMessage}</div>

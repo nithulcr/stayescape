@@ -10,7 +10,7 @@ export function CategoryGrid({ categories }: { categories: CategoryRow[] }) {
   if (!categories.length) return null;
 
   return (
-    <div className="mobile-card-slider gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="mobile-card-slider gap-4 sm:grid-cols-2 lg:grid-cols-4 mx-[-1.25rem] md:mx-0 px-[1.25rem] md:px-0">
       {categories.slice(0, 8).map((category, index) => {
         
         return (
