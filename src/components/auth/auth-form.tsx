@@ -139,7 +139,7 @@ export function AuthForm({
           <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">{state.message}</p>
         )}
 
-        <button type="submit" disabled={pending} className="btn-primary mt-2 w-full justify-center disabled:opacity-60">
+        <button type="submit" disabled={pending} className="btn-secondary mt-2 w-full justify-center disabled:opacity-60">
           {pending ? "Please wait..." : text.submit}
         </button>
       </form>

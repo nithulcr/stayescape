@@ -19,8 +19,8 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co",
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseSources.join(" ")} https://api.razorpay.com`,
-  "frame-src https://checkout.razorpay.com",
+  `connect-src 'self' ${supabaseSources.join(" ")} https://api.razorpay.com https://lumberjack.razorpay.com`,
+  "frame-src https://checkout.razorpay.com https://api.razorpay.com",
   "form-action 'self'",
 ].join("; ");
 

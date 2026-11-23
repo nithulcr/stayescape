@@ -131,7 +131,7 @@ export function SiteHeader() {
             <>
               <Link
                 href="/login"
-                className="px-2 text-sm font-medium btn-primary text-forest hover:text-forest-soft"
+                className="btn-secondary !px-4 !py-2"
               >
                 Login
               </Link>
