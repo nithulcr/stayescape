@@ -3,15 +3,26 @@
 import Image from "next/image";
 import { useState } from "react";
 import { fallbackPropertyImage } from "@/lib/media";
+import { getPropertyImageAlt } from "@/lib/seo/property";
 import { cn } from "@/lib/utils";
 import type { PropertyDetail } from "@/types";
 
-export function PropertyGallery({
-  images,
-  name,
-  cover_image,
-}: Pick<PropertyDetail, "images" | "name" | "cover_image">) {
-  const slides = images.length ? images : [{ id: "fallback", public_url: cover_image, alt_text: name, is_cover: true }];
+type GalleryProperty = Pick<
+  PropertyDetail,
+  "images" | "name" | "slug" | "cover_image" | "city" | "district" | "state" | "category_name"
+>;
+
+export function PropertyGallery({ property }: { property: GalleryProperty }) {
+  const slides = property.images.length
+    ? property.images
+    : [
+        {
+          id: "fallback",
+          public_url: property.cover_image,
+          alt_text: null,
+          is_cover: true,
+        },
+      ];
   const [active, setActive] = useState(0);
   const current = slides[active] ?? slides[0];
 
@@ -21,7 +32,7 @@ export function PropertyGallery({
         <Image
           key={current.id}
           src={current.public_url || fallbackPropertyImage}
-          alt={current.alt_text || name}
+          alt={getPropertyImageAlt(current, property, active)}
           fill
           priority
           sizes="(max-width: 1024px) 100vw, 65vw"

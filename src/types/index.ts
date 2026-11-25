@@ -47,6 +47,7 @@ export type PropertyListItem = {
   city: string | null;
   state: string | null;
   district: string | null;
+  destination_slug: string | null;
   category_name: string | null;
   category_slug: string | null;
   cover_image: string | null;

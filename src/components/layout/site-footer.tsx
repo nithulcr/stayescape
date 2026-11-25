@@ -178,7 +178,18 @@ export function SiteFooter() {
           <p>
             © {new Date().getFullYear()} {brand.name}. All rights reserved.
           </p>
-          <p>Built By Terrah Tech</p>
+          <div className="flex items-end gap-2">
+             
+            <p>Built By Terrah Tech</p>
+            <Image
+                      src="/terrah.png"
+                      alt="terrah tech"
+                      width="150"
+                      height="40"
+                      sizes="20vw"
+                      className="w-20 "
+                    />
+          </div>
         </div>
       </div>
     </footer>

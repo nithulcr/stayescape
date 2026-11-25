@@ -1,13 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { brand, getSeoOrigin, siteUrl } from "@/lib/config";
-import { Boldonse, Mona_Sans } from "next/font/google";
+import { Mona_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import "lenis/dist/lenis.css";
-const boldonse = Boldonse({
-  subsets: ["latin"],
+const boldonse = localFont({
+  src: "../fonts/Boldonse-latin.woff2",
+  display: "swap",
   weight: "400",
   variable: "--font-boldonse",
+  adjustFontFallback: false,
 });
 
 const monaSans = Mona_Sans({

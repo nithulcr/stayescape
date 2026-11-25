@@ -17,12 +17,10 @@ export function HeroSearch({
   const [destination, setDestination] = useState("");
   const [district, setDistrict] = useState("");
   const [category, setCategory] = useState("");
-  const [query, setQuery] = useState("");
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     const params = new URLSearchParams();
-    if (query.trim()) params.set("q", query.trim());
     if (destination) params.set("destination", destination);
     if (district) params.set("district", district);
     if (category) params.set("category", category);
@@ -32,20 +30,8 @@ export function HeroSearch({
   return (
     <form
       onSubmit={submit}
-      className="grid gap-3 rounded-lg bg-white/70 p-4 md:p-5 shadow-[0_24px_70px_-30px_rgba(8,32,25,0.6)] backdrop-blur md:grid-cols-[1.2fr_1fr_1fr_1fr_auto] md:items-center"
+      className="grid gap-3 rounded-lg bg-white/80 p-4 md:p-5 shadow-[0_24px_70px_-30px_rgba(8,32,25,0.6)] backdrop-blur md:grid-cols-[1.2fr_1fr_1fr_1fr_auto] md:items-center"
     >
-      {/* <label className="block px-2 md:px-3 py-1">
-        <span className="field-label !mb-1 !text-[0.65rem] !uppercase !tracking-wider">
-          Where to?
-        </span>
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search stays by name"
-          className="w-full border-0 bg-transparent px-0 py-2 text-sm text-black outline-none placeholder:text-black/70 focus:ring-0"
-        />
-      </label> */}
-
       <label className="block  px-2 md:px-3 py-1">
         <span className="field-label !mb-1 !text-[0.65rem] !uppercase !tracking-wider">
           Destination

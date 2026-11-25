@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ArrowRight, Camera, Check, ClipboardCheck, MessageSquare } from "lucide-react";
 import { media } from "@/lib/media";
 import { createPageMetadata } from "@/lib/seo/metadata";
+import { Testimonials } from "@/components/home/testimonials";
+import { WhyList } from "@/components/home/why-list";
 
 export const metadata = createPageMetadata({
   title: "List your property",
@@ -58,7 +60,7 @@ export default function ListYourPropertyPage() {
             </div>
           </div>
           <div className="surface-card !bg-ivory/95 p-7 text-forest-deep">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Why list with us</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-forest">Why list with us</p>
             <ul className="mt-5 space-y-4 text-sm">
               {[
                 "Premium presentation for every approved property",
@@ -84,8 +86,10 @@ export default function ListYourPropertyPage() {
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {steps.map((step, index) => (
               <div key={step.title} className="surface-card p-6">
-                <span className="text-xs font-semibold text-gold">0{index + 1}</span>
-                <step.icon size={22} className="mt-3 text-forest" />
+               
+                <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gold">
+                  <step.icon size={22} className=" text-forest" />
+                </span>
                 <h3 className="mt-3 font-serif text-lg text-forest-deep">{step.title}</h3>
                 <p className="mt-2 text-sm text-muted">{step.text}</p>
               </div>
@@ -93,6 +97,8 @@ export default function ListYourPropertyPage() {
           </div>
         </div>
       </section>
+      <WhyList />
+            <Testimonials />
     </>
   );
 }

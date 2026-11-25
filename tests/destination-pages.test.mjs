@@ -192,7 +192,8 @@ test("destination page uses approved published properties and real destination f
 
   assert.match(sitemapData, /isDestinationIndexable/);
   assert.match(sitemapData, /eq\("status", "approved"\)/);
-  assert.doesNotMatch(sitemapData, /has_requested_changes/);
+  assert.match(sitemapData, /isPropertyIndexable/);
+  assert.doesNotMatch(sitemapData, /applyPublicPropertyVisibility/);
 
   assert.match(seoHelper, /DESTINATION_INDEX_THRESHOLD = 1/);
   assert.match(seoHelper, /hasVerifiedDestinationIntro/);

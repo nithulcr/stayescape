@@ -204,6 +204,7 @@ function toListItem(
     city: destination?.name ?? null,
     state: property.state || destination?.state || null,
     district: property.district ?? null,
+    destination_slug: destination?.slug ?? null,
     category_name: category?.name ?? null,
     category_slug: category?.slug ?? null,
     cover_image: cover?.public_url || fallbackPropertyImage,

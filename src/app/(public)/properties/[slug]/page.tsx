@@ -5,7 +5,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  ArrowRight,
   Check,
+  ChevronRight,
   Clock3,
   Globe2,
   Mail,
@@ -22,28 +24,19 @@ import { ReviewList } from "@/components/properties/review-list";
 import { getAuthContext } from "@/lib/auth/guards";
 import { getPropertyBySlug, getSimilarProperties } from "@/lib/data/public";
 import { guestReviewCookie, isValidGuestReviewId } from "@/lib/reviews/guest";
-import { fallbackPropertyImage } from "@/lib/media";
+import { getCanonicalUrl, createNoIndexMetadata } from "@/lib/seo/metadata";
 import {
-  createNoIndexMetadata,
-  createPageMetadata,
-  getCanonicalUrl,
-} from "@/lib/seo/metadata";
+  buildPropertyJsonLd,
+  createPropertyMetadata,
+  getPropertyBreadcrumbLinks,
+} from "@/lib/seo/property";
 import { formatINR, telephoneLink, whatsappLink } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const property = await getPropertyBySlug(slug);
   if (!property) return createNoIndexMetadata("Property not found");
-  const description =
-    property.short_description ??
-    property.description ??
-    `Explore ${property.name} in ${property.city}, ${property.state} on STAYESCAPE.`;
-  return createPageMetadata({
-    title: property.name,
-    description,
-    path: `/properties/${property.slug}`,
-    image: property.cover_image ?? fallbackPropertyImage,
-  });
+  return createPropertyMetadata(property);
 }
 
 export default async function PropertyPage({
@@ -70,31 +63,38 @@ export default async function PropertyPage({
     `Hi, I'm interested in ${property.name}. Could you please share availability and more details?`,
   );
   const callOwner = telephoneLink(callNumber);
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "LodgingBusiness",
-    name: property.name,
-    description: property.short_description ?? property.description,
-    image: property.cover_image ?? fallbackPropertyImage,
-    url: getCanonicalUrl(`/properties/${property.slug}`) ?? undefined,
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: property.city,
-      addressRegion: property.state,
-      addressCountry: "IN",
-      streetAddress: property.address ?? undefined,
-    },
-    priceRange: property.price_per_night ? formatINR(property.price_per_night) : undefined,
-  };
+  const canonicalUrl = getCanonicalUrl(`/properties/${property.slug}`);
+  const jsonLd = canonicalUrl ? buildPropertyJsonLd({ property, canonicalUrl }) : null;
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
-      />
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+        />
+      )}
 
       <div className="site-container py-10 md:py-14">
+        <nav aria-label="Breadcrumb" className="mb-5 text-xs text-muted">
+          <ol className="flex flex-wrap items-center gap-2">
+            {getPropertyBreadcrumbLinks(property).map((crumb, index, links) => (
+              <li key={crumb.path} className="flex items-center gap-2">
+                {index < links.length - 1 ? (
+                  <Link href={crumb.path} className="hover:text-forest">
+                    {crumb.name}
+                  </Link>
+                ) : (
+                  <span aria-current="page" className="text-forest-deep">
+                    {crumb.name}
+                  </span>
+                )}
+                {index < links.length - 1 && <ChevronRight size={12} aria-hidden="true" />}
+              </li>
+            ))}
+          </ol>
+        </nav>
+
         <Link href="/properties" className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-forest">
           <ArrowLeft size={13} /> Back to all stays
         </Link>
@@ -102,10 +102,13 @@ export default async function PropertyPage({
         <div className="mt-6 grid gap-9 lg:grid-cols-[1.45fr_0.55fr] lg:items-start">
           <div>
             <div className="mb-5 flex flex-wrap items-center gap-3">
-              {property.category_name && (
-                <span className="rounded-full bg-[#f2eee4] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-forest">
+              {property.category_name && property.category_slug && (
+                <Link
+                  href={`/categories/${property.category_slug}`}
+                  className="rounded-full bg-[#f2eee4] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-forest hover:underline"
+                >
                   {property.category_name}
-                </span>
+                </Link>
               )}
               {property.is_featured && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#fbf3e4] px-3 py-1 text-[0.68rem] font-semibold text-[#8a6a30]">
@@ -129,13 +132,17 @@ export default async function PropertyPage({
               <MapPin size={15} className="text-gold" />
               {[property.district, property.city, property.state].filter(Boolean).join(", ") || "Location on request"}
             </p>
+            {property.destination_slug && property.city && (
+              <Link
+                href={`/destinations/${property.destination_slug}`}
+                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-forest hover:underline"
+              >
+                Explore stays in {property.city} <ArrowRight size={12} />
+              </Link>
+            )}
 
             <div className="mt-7">
-              <PropertyGallery
-                images={property.images}
-                name={property.name}
-                cover_image={property.cover_image}
-              />
+              <PropertyGallery property={property} />
             </div>
 
             <section className="mt-10">

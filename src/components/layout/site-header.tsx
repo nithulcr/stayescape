@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, LogOut, Menu, ShieldCheck, X } from "lucide-react";
+import { LayoutDashboard, LogOut, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { logoutAction } from "@/app/auth/actions";
@@ -144,24 +144,38 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-forest/15 lg:hidden"
+          className="inline-flex h-10 w-10 items-center text-white justify-center rounded-lg  lg:hidden"
           onClick={() => setOpen((value) => !value)}
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
         >
-          {open ? <X size={19} /> : <Menu size={19} />}
+          {open ? 
+          <div className="menu-close">
+            <span></span>
+
+
+          </div>
+          : 
+          <div className="menu">
+            <span></span>
+            <span></span>
+            <span></span>
+
+          </div>
+          
+          }
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-forest/10 bg-ivory lg:hidden">
+        <div className="border-t border-forest/10 bg-forest lg:hidden">
           <div className="site-container flex flex-col py-4">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={closeMenu}
-                className="border-b border-forest/8 py-3 text-sm font-medium text-forest"
+                className="border-b border-forest/8 py-3 text-sm font-medium text-ivory transition-colors hover:text-white"
               >
                 {link.label}
               </Link>

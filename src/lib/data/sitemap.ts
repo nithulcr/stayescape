@@ -3,12 +3,37 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isDestinationIndexable } from "@/lib/seo/destination";
+import { isPropertyIndexable } from "@/lib/seo/property";
 import { CATEGORY_INDEX_THRESHOLD } from "@/lib/seo/sitemap";
 import type { SitemapRecord } from "@/lib/seo/sitemap";
-import { hasPropertyPublicationColumn } from "@/lib/supabase/schema";
+import {
+  hasPropertyChangeRequestColumn,
+  hasPropertyPublicationColumn,
+} from "@/lib/supabase/schema";
 import type { CategoryRow, Database, DestinationRow, PropertyRow } from "@/types/database.types";
 
 type Client = SupabaseClient<Database>;
+
+type SitemapPropertyRow = {
+  slug: string;
+  updated_at: string;
+  name: string;
+  short_description: string | null;
+  description: string | null;
+  status: PropertyRow["status"];
+  is_published?: boolean | null;
+  has_requested_changes?: boolean | null;
+  destination_id: string | null;
+  district: string | null;
+  state: string | null;
+  category_id: string | null;
+  price_per_night: number | null;
+  address: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  website_url: string | null;
+  highlights: string[] | null;
+};
 
 const STATIC_PAGES: SitemapRecord[] = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
@@ -59,11 +84,37 @@ export async function getSitemapRecords(): Promise<SitemapRecord[]> {
   if (!supabase) return STATIC_PAGES;
 
   try {
-    const publicationReady = await hasPropertyPublicationColumn(supabase);
+    const [publicationReady, changeRequestReady] = await Promise.all([
+      hasPropertyPublicationColumn(supabase),
+      hasPropertyChangeRequestColumn(supabase),
+    ]);
+
+    const propertyColumns = [
+      "slug",
+      "updated_at",
+      "name",
+      "short_description",
+      "description",
+      "status",
+      "destination_id",
+      "district",
+      "state",
+      "category_id",
+      "price_per_night",
+      "address",
+      "contact_phone",
+      "contact_email",
+      "website_url",
+      "highlights",
+      publicationReady ? "is_published" : null,
+      changeRequestReady ? "has_requested_changes" : null,
+    ]
+      .filter((column): column is string => Boolean(column))
+      .join(",");
 
     let propertyQuery = supabase
       .from("properties")
-      .select("slug,updated_at,destination_id,category_id")
+      .select(propertyColumns)
       .eq("status", "approved");
     if (publicationReady) propertyQuery = propertyQuery.eq("is_published", true);
 
@@ -75,12 +126,11 @@ export async function getSitemapRecords(): Promise<SitemapRecord[]> {
 
     if (propertyResult.error) return STATIC_PAGES;
 
-    const properties = (propertyResult.data ?? []) as Pick<
-      PropertyRow,
-      "slug" | "updated_at" | "destination_id" | "category_id"
-    >[];
+    const properties = (propertyResult.data ?? []) as unknown as SitemapPropertyRow[];
     const destinations = (destinationResult.data ?? []) as DestinationRow[];
     const categories = (categoryResult.data ?? []) as CategoryRow[];
+    const destinationMap = new Map(destinations.map((destination) => [destination.id, destination]));
+    const categoryMap = new Map(categories.map((category) => [category.id, category]));
 
     const destinationCounts = new Map<string, number>();
     const categoryCounts = new Map<string, number>();
@@ -136,12 +186,38 @@ export async function getSitemapRecords(): Promise<SitemapRecord[]> {
         priority: 0.8,
       }));
 
-    const propertyRecords: SitemapRecord[] = properties.map((property) => ({
-      path: `/properties/${property.slug}`,
-      updatedAt: property.updated_at,
-      changeFrequency: "weekly",
-      priority: 0.7,
-    }));
+    const propertyRecords: SitemapRecord[] = properties
+      .filter((property) => {
+        const destination = property.destination_id
+          ? destinationMap.get(property.destination_id)
+          : null;
+        const category = property.category_id ? categoryMap.get(property.category_id) : null;
+        return isPropertyIndexable({
+          name: property.name,
+          slug: property.slug,
+          status: property.status,
+          is_published: property.is_published,
+          has_requested_changes: property.has_requested_changes,
+          short_description: property.short_description,
+          description: property.description,
+          city: destination?.name ?? null,
+          district: property.district,
+          state: property.state || destination?.state || null,
+          category_name: category?.name ?? null,
+          price_per_night: property.price_per_night,
+          address: property.address,
+          contact_phone: property.contact_phone,
+          contact_email: property.contact_email,
+          website_url: property.website_url,
+          highlights: Array.isArray(property.highlights) ? property.highlights : [],
+        });
+      })
+      .map((property) => ({
+        path: `/properties/${property.slug}`,
+        updatedAt: property.updated_at,
+        changeFrequency: "weekly",
+        priority: 0.7,
+      }));
 
     return [...STATIC_PAGES, ...categoryRecords, ...destinationRecords, ...propertyRecords];
   } catch {

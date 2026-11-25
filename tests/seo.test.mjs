@@ -148,7 +148,9 @@ test("sitemap data uses public RLS, published filters, and category quality thre
   assert.match(data, /eq\("status", "approved"\)/);
   assert.match(data, /eq\("is_published", true\)/);
   assert.match(data, /isDestinationIndexable/);
-  assert.doesNotMatch(data, /has_requested_changes/);
+  assert.match(data, /isPropertyIndexable/);
+  assert.match(data, /has_requested_changes/);
+  assert.doesNotMatch(data, /applyPublicPropertyVisibility/);
   assert.match(data, /eq\("is_active", true\)/);
   assert.match(data, /CATEGORY_INDEX_THRESHOLD/);
   assert.match(data, /updated_at/);
@@ -181,9 +183,12 @@ test("private pages and missing public records are not indexed", () => {
 
 test("structured data stays factual and category cards use real category pages", () => {
   const propertyPage = read("../src/app/(public)/properties/[slug]/page.tsx");
-  assert.match(propertyPage, /"@type": "LodgingBusiness"/);
-  assert.match(propertyPage, /url: getCanonicalUrl/);
-  assert.doesNotMatch(propertyPage, /aggregateRating|ratingValue|reviewCount/);
+  const propertySeo = read("../src/lib/seo/property.ts");
+  assert.match(propertyPage, /buildPropertyJsonLd/);
+  assert.match(propertyPage, /createPropertyMetadata/);
+  assert.match(propertySeo, /"@type": "LodgingBusiness"/);
+  assert.match(propertySeo, /"@type": "BreadcrumbList"/);
+  assert.match(propertySeo, /getApprovedReviewStats/);
 
   const categoryGrid = read("../src/components/home/category-grid.tsx");
   assert.match(categoryGrid, /href=\{`\/categories\/\$\{category\.slug\}`\}/);
