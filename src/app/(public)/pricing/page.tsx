@@ -1,7 +1,6 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, Crown } from "lucide-react";
-import { CheckoutButton } from "@/components/payments/checkout-button";
+import { WhatsAppCheckoutButton } from "@/components/payments/whatsapp-checkout-button";
 import {
   BILLING_CYCLES,
   getBillingCycleLabel,
@@ -10,12 +9,14 @@ import {
   getPlanPriceForBillingCycle,
 } from "@/lib/plans/billing-cycle";
 import { FALLBACK_FREE_LIMITS, FALLBACK_PREMIUM_LIMITS, getPlans, toPlanLimits } from "@/lib/plans/limits";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import { formatINR } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Pricing",
-  description: "Simple, transparent plans for property owners on STAYESCAPE.",
-};
+export const metadata = createPageMetadata({
+  title: "Owner plans and pricing",
+  description: "Compare free and premium plans for property owners listing stays on STAYESCAPE.",
+  path: "/pricing",
+});
 
 export default async function PricingPage() {
   const plans = await getPlans();
@@ -32,7 +33,7 @@ export default async function PricingPage() {
         </p>
       </div>
 
-      <div className="mx-auto mt-12 grid max-w-5xl gap-6 lg:grid-cols-2">
+      <div className="mx-auto mt-12 grid gap-6 lg:grid-cols-3">
         <div className="surface-card flex flex-col p-7">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Starter</p>
           <h2 className="mt-2 font-serif text-3xl text-forest-deep">{free.planName}</h2>
@@ -52,7 +53,7 @@ export default async function PricingPage() {
           </Link>
         </div>
 
-        <div className="relative flex flex-col rounded-xl border border-gold/50 bg-forest-deep p-7 text-white shadow-[0_20px_60px_-30px_rgba(18,61,50,0.8)]">
+        <div className="lg:col-span-2 relative flex flex-col rounded-xl border border-gold/50 bg-forest-deep p-7 text-white shadow-[0_20px_60px_-30px_rgba(18,61,50,0.8)]">
           <span className="absolute right-6 top-6 inline-flex items-center gap-1 rounded-full bg-gold px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-wider text-forest-deep">
             <Crown size={11} /> Most popular
           </span>
@@ -78,7 +79,7 @@ export default async function PricingPage() {
                     <p className="mt-1 text-xs text-gold-soft">Save {formatINR(savings)} vs monthly</p>
                   )}
                   <div className="mt-3 [&_button]:!border-ivory/30 [&_button]:!bg-transparent [&_button]:!text-white">
-                    <CheckoutButton billingCycle={billingCycle} label={`Choose ${getBillingCycleLabel(billingCycle)}`} />
+                    <WhatsAppCheckoutButton billingCycle={billingCycle} label={`Choose ${getBillingCycleLabel(billingCycle)}`} />
                   </div>
                 </div>
               );
@@ -95,7 +96,7 @@ export default async function PricingPage() {
       </div>
 
       <div className="mx-auto mt-10 max-w-3xl text-center text-xs text-muted">
-        Payments are processed securely by Razorpay. Subscription activation happens only after a signed payment confirmation or verified webhook.
+        Pay by bank transfer or UPI through WhatsApp. Premium is activated only after the payment is verified and approved by a Stay Escape Super Admin.
       </div>
     </div>
   );

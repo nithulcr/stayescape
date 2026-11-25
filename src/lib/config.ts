@@ -6,12 +6,47 @@ export const brand = {
   email: "hello@STAYESCAPE.example",
 } as const;
 
-export const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-).replace(/\/$/, "");
+export function normalizeSeoOrigin(value: string | undefined | null): string | null {
+  if (!value) return null;
+
+  try {
+    const parsed = new URL(value.trim());
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    if (parsed.username || parsed.password) return null;
+
+    const hostname = parsed.hostname.toLowerCase();
+    const isLocalhost =
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "::1" ||
+      hostname.startsWith("localhost.") ||
+      hostname.endsWith(".localhost");
+    const isPreview =
+      hostname === "vercel.app" ||
+      hostname.endsWith(".vercel.app") ||
+      hostname.endsWith(".vercel.dev") ||
+      hostname.endsWith(".preview.local");
+
+    if (isLocalhost || isPreview) return null;
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+}
+
+export const seoOrigin = normalizeSeoOrigin(process.env.NEXT_PUBLIC_SITE_URL);
+
+export const siteUrl = seoOrigin ?? "http://localhost:3000";
+
+export function getSeoOrigin(): string | null {
+  return seoOrigin;
+}
 
 export const storageBucket =
   process.env.NEXT_PUBLIC_STORAGE_BUCKET || "property-images";
+
+export const manualPaymentProofBucket =
+  process.env.NEXT_PUBLIC_MANUAL_PAYMENT_PROOF_BUCKET || "manual-payment-proofs";
 
 export const keralaStateName = "Kerala";
 

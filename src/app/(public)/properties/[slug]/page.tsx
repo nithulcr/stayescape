@@ -23,23 +23,27 @@ import { getAuthContext } from "@/lib/auth/guards";
 import { getPropertyBySlug, getSimilarProperties } from "@/lib/data/public";
 import { guestReviewCookie, isValidGuestReviewId } from "@/lib/reviews/guest";
 import { fallbackPropertyImage } from "@/lib/media";
+import {
+  createNoIndexMetadata,
+  createPageMetadata,
+  getCanonicalUrl,
+} from "@/lib/seo/metadata";
 import { formatINR, telephoneLink, whatsappLink } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const property = await getPropertyBySlug(slug);
-  if (!property) return { title: "Property not found" };
-  const description = property.short_description ?? property.description?.slice(0, 160) ?? undefined;
-  return {
+  if (!property) return createNoIndexMetadata("Property not found");
+  const description =
+    property.short_description ??
+    property.description ??
+    `Explore ${property.name} in ${property.city}, ${property.state} on STAYESCAPE.`;
+  return createPageMetadata({
     title: property.name,
     description,
-    alternates: { canonical: `/properties/${property.slug}` },
-    openGraph: {
-      title: property.name,
-      description,
-      images: property.cover_image ? [property.cover_image] : [fallbackPropertyImage],
-    },
-  };
+    path: `/properties/${property.slug}`,
+    image: property.cover_image ?? fallbackPropertyImage,
+  });
 }
 
 export default async function PropertyPage({
@@ -72,6 +76,7 @@ export default async function PropertyPage({
     name: property.name,
     description: property.short_description ?? property.description,
     image: property.cover_image ?? fallbackPropertyImage,
+    url: getCanonicalUrl(`/properties/${property.slug}`) ?? undefined,
     address: {
       "@type": "PostalAddress",
       addressLocality: property.city,

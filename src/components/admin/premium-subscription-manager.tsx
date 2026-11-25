@@ -243,7 +243,7 @@ export function PremiumSubscriptionManager({ user }: { user: ManageableAdminUser
                 <p className="text-xs text-rose-700">{fieldError(state, "confirm")}</p>
               ) : null}
 
-              <button type="submit" disabled={pending} className="btn-primary disabled:opacity-50">
+              <button type="submit" disabled={pending} className="btn-secondary disabled:opacity-50">
                 {pending
                   ? "Saving…"
                   : mode === "grant"

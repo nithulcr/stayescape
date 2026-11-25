@@ -212,7 +212,7 @@ test("public reads and owner stats use the published flag when available", () =>
 
 test("dashboard warns about expiry and offers property selection", () => {
   assert.match(subscriptionPage, /plan\.status === "expired"/);
-  assert.match(subscriptionPage, /plan\.needsPropertySelection/);
+  assert.match(subscriptionPage, /needsPropertySelectionForOwner/);
   assert.match(subscriptionPage, /plan\.daysRemaining/);
   assert.match(propertiesPage, /PropertyPublicationControls/);
   assert.match(propertiesPage, /\{plan\.publishedCount\} of \{plan\.publishedLimit\}/);
@@ -236,7 +236,8 @@ test("expiry function is dropped before changing its return type", () => {
 });
 
 test("refunds are recorded without silently revoking subscriptions", () => {
-  assert.match(webhookRoute, /event\.eventType === "payment\.failed" \? "failed" : "refunded"/);
-  assert.match(read("../supabase/migrations/0013_payment_security.sql"), /refunded/);
+  assert.match(webhookRoute, /event\.eventType === "refund\.created"/);
+  assert.match(webhookRoute, /recordRefund/);
+  assert.doesNotMatch(read("../supabase/migrations/0028_record_refund_details.sql"), /update public\.subscriptions/);
   assert.doesNotMatch(migration, /refund.*expired/i);
 });

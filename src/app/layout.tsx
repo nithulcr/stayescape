@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { brand, siteUrl } from "@/lib/config";
-import { Boldonse, Roboto } from "next/font/google";
+import { brand, getSeoOrigin, siteUrl } from "@/lib/config";
+import { Boldonse, Mona_Sans } from "next/font/google";
 import "./globals.css";
 import "lenis/dist/lenis.css";
 const boldonse = Boldonse({
@@ -10,11 +10,12 @@ const boldonse = Boldonse({
   variable: "--font-boldonse",
 });
 
-const roboto = Roboto({
+const monaSans = Mona_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-roboto",
+  display: "swap",
+  variable: "--font-mona-sans",
 });
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -32,13 +33,12 @@ export const metadata: Metadata = {
     "Munnar resorts",
     "Alleppey houseboats",
   ],
-  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     siteName: brand.name,
     title: `${brand.name} — ${brand.tagline}`,
     description: brand.description,
-    url: siteUrl,
+    url: getSeoOrigin() ?? undefined,
     locale: "en_IN",
   },
   twitter: {
@@ -57,7 +57,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${boldonse.variable} ${roboto.variable}`}>
+    <html lang="en" className={`${boldonse.variable} ${monaSans.variable}`}>
       <body>{children}</body>
     </html>
   );

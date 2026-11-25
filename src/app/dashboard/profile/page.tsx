@@ -12,7 +12,7 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto max-w-2xl">
       <p className="eyebrow">Account</p>
-      <h1 className="display-title mt-3 text-4xl">Your profile.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Your profile.</h1>
 
       <section className="surface-card mt-8 p-7">
         <div className="flex items-center gap-5">

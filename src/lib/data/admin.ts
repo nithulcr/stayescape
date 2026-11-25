@@ -151,7 +151,8 @@ export async function getAllUsers(filters: AdminUserFilters = {}): Promise<Admin
     supabase.from("properties").select("owner_id"),
     supabase
       .from("subscriptions")
-      .select("id,owner_id,status,plan_id,billing_cycle,starts_at,expires_at,source"),
+      .select("id,owner_id,status,plan_id,billing_cycle,starts_at,expires_at,source")
+      .order("created_at", { ascending: false }),
     supabase.from("plans").select("id,name,code"),
   ]);
 

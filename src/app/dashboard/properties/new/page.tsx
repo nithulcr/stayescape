@@ -21,7 +21,7 @@ export default async function NewPropertyPage() {
   return (
     <div className="mx-auto max-w-4xl">
       <p className="eyebrow">New listing</p>
-      <h1 className="display-title mt-3 text-4xl">Add a property.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Add a property.</h1>
       <p className="mt-3 text-sm text-muted">
         Your listing will be submitted for review. You can add photos after it is created.
       </p>
@@ -42,11 +42,20 @@ export default async function NewPropertyPage() {
         </div>
       ) : (
         <div className="surface-card mt-8 p-7">
-          <p className="font-serif text-2xl text-forest-deep">You have reached your plan limit.</p>
+          <p className="font-serif text-2xl text-forest-deep">Free allows one property</p>
           <p className="mt-2 text-sm text-muted">
-            Your {plan.limits.planName} plan allows {plan.limits.maxProperties} properties. Upgrade to Premium to manage up to {planLimits.premium.maxProperties} properties on your owner account.
+            Your {plan.limits.planName} plan allows {plan.limits.maxProperties} property. A second
+            property can only be added on Premium, which allows up to {planLimits.premium.maxProperties}{" "}
+            properties, more images per property, and additional Premium features.
           </p>
-          <Link href="/dashboard/subscription" className="btn-secondary mt-6">View upgrade options</Link>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/dashboard/subscription" className="btn-primary">
+              Upgrade to Premium
+            </Link>
+            <Link href="/dashboard/properties" className="btn-secondary">
+              Cancel / Back
+            </Link>
+          </div>
         </div>
       )}
     </div>

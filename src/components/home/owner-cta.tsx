@@ -6,7 +6,7 @@ export function OwnerCta() {
     <section id="owner-cta" className="section-space  pt-0">
       <div className="site-container">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-[#235a3d] to-forest-deep p-6 md:px-7 md:py-12 text-white md:px-14 md:py-16">
-          <div className="relative grid gap-8 lg:grid-cols-[1.3fr_0.8fr] lg:items-center">
+          <div className="relative grid gap-5 md:gap-8 lg:grid-cols-[1.3fr_0.8fr] lg:items-center">
             <div>
              
               <h2 className="display-title mt-4 text-[clamp(1.6rem,4.5vw,2.9rem)]">
@@ -17,7 +17,7 @@ export function OwnerCta() {
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
-              <Link href="/register?role=owner" className="btn-primary !bg-lime  hover:!bg-gold">
+              <Link href="/register?role=owner" className="btn-primary bg-lime  hover:!bg-gold">
                 List for free <ArrowRight size={16} />
               </Link>
               <Link href="/pricing" className="btn-secondary">

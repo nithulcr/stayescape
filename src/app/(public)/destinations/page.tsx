@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
 import { DestinationGrid } from "@/components/home/destination-grid";
 import { getDestinations } from "@/lib/data/public";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Destinations",
+export const metadata = createPageMetadata({
+  title: "Kerala staycation destinations",
   description: "Explore Kerala’s most memorable staycation destinations, from Wayanad to the backwaters.",
-};
+  path: "/destinations",
+});
 
 export default async function DestinationsPage() {
   const destinations = await getDestinations();

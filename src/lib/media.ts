@@ -24,3 +24,26 @@ export const media = {
 } as const;
 
 export const fallbackPropertyImage = media.resort;
+
+export const districtFallbackImages = {
+  Kasaragod: media.beach,
+  Kannur: media.heroPortrait,
+  Wayanad: media.tea,
+  Kozhikode: media.heritage,
+  Malappuram: media.homestay,
+  Palakkad: media.forest,
+  Thrissur: media.balcony,
+  Ernakulam: media.resort,
+  Idukki: media.hero,
+  Kottayam: media.villa,
+  Alappuzha: media.backwaters,
+  Pathanamthitta: media.yoga,
+  Kollam: media.pool,
+  Thiruvananthapuram: media.interior,
+} as const;
+
+export function getDistrictFallbackImage(district: string): string {
+  return (
+    districtFallbackImages[district as keyof typeof districtFallbackImages] ?? fallbackPropertyImage
+  );
+}

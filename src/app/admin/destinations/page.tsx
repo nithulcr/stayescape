@@ -14,9 +14,9 @@ export default async function AdminDestinationsPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">Content</p>
-          <h1 className="display-title mt-3 text-4xl">Destinations.</h1>
+          <h1 className="display-title mt-3 text-3xl md:text-4xl">Destinations.</h1>
         </div>
-        <Link href="/admin/destinations/new" className="btn-primary">Add destination</Link>
+        <Link href="/admin/destinations/new" className="btn-secondary">Add destination</Link>
       </div>
 
       <div className="mt-8">

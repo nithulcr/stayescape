@@ -29,6 +29,8 @@ test("CSP allows Razorpay checkout frames and telemetry without weakening framin
 
   const directives = getDirectives(csp);
   assert.ok(directives["script-src"].includes("https://checkout.razorpay.com"));
+  assert.ok(directives["script-src"].includes("https://cdn.razorpay.com"));
+  assert.ok(directives["img-src"].includes("https://cdn.razorpay.com"));
   assert.ok(directives["frame-src"].includes("https://checkout.razorpay.com"));
   assert.ok(directives["frame-src"].includes("https://api.razorpay.com"));
   assert.ok(directives["connect-src"].includes("https://api.razorpay.com"));

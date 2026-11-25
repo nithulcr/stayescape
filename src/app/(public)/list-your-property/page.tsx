@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Camera, Check, ClipboardCheck, MessageSquare } from "lucide-react";
 import { media } from "@/lib/media";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "List your property",
   description: "Join STAYESCAPE as a property owner and reach travellers looking for distinctive Kerala stays.",
-};
+  path: "/list-your-property",
+});
 
 const steps = [
   {
@@ -40,7 +41,7 @@ export default function ListYourPropertyPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-forest-deep/95 via-forest-deep/75 to-transparent" />
         <div className="site-container relative grid gap-10 py-20 text-white md:py-28 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <p className="eyebrow !text-gold-soft">For property owners</p>
+            <p className="eyebrow !text-gold">For property owners</p>
             <h1 className="display-title mt-4 text-[clamp(2.5rem,6vw,4.4rem)]">
               Put your property on the map.
             </h1>

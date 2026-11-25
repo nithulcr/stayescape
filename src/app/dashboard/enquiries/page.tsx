@@ -14,7 +14,7 @@ export default async function DashboardEnquiriesPage() {
   return (
     <>
       <p className="eyebrow">Inbox</p>
-      <h1 className="display-title mt-3 text-4xl">Guest enquiries.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Guest enquiries.</h1>
       <p className="mt-3 text-sm text-muted">Enquiries are visible only to the owner of the related property.</p>
 
       {enquiries.length ? (

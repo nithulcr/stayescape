@@ -37,7 +37,7 @@ export default async function AdminPropertyPage({ params }: { params: Promise<{ 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="eyebrow">Edit property</p>
-          <h1 className="display-title mt-3 text-4xl">{property.name}</h1>
+          <h1 className="display-title mt-3 text-3xl md:text-4xl">{property.name}</h1>
         </div>
         <p className="mt-2 text-xs text-muted">
           {property.district ? `${property.district}, ${property.state}` : property.state}

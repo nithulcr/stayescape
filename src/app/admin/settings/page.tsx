@@ -9,7 +9,7 @@ export default async function AdminSettingsPage() {
   return (
     <>
       <p className="eyebrow">Configuration</p>
-      <h1 className="display-title mt-3 text-4xl">Plans & amenities.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Plans & amenities.</h1>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-2">
         {plans.length ? (

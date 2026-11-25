@@ -1,7 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getBillingDurationMonths } from "@/lib/plans/billing-cycle";
 import {
+  canActivatePaymentStatus,
   checkRazorpayPayment,
+  checkRefundEvent,
+  isSuccessfulRefundStatus,
   isSupportedWebhookEvent,
   parseWebhookEvent,
 } from "@/lib/payments/payment-check";
@@ -10,12 +13,19 @@ import {
   fetchRazorpayPayment,
   getPaymentByOrderId,
   recordPaymentStatus,
+  recordRefund,
+  razorpayConfigured,
+  razorpayWebhookConfigured,
   verifyWebhookSignature,
 } from "@/lib/payments/razorpay";
 
 const SUCCESS_EVENTS = new Set(["payment.captured", "order.paid"]);
 
 export async function POST(request: NextRequest) {
+  if (!razorpayConfigured || !razorpayWebhookConfigured) {
+    return NextResponse.json({ error: "Payment gateway is not configured." }, { status: 503 });
+  }
+
   const signature = request.headers.get("x-razorpay-signature") ?? "";
   const raw = await request.text();
 
@@ -67,6 +77,9 @@ export async function POST(request: NextRequest) {
       payment: gatewayPayment,
     });
     if (!matches.ok) return NextResponse.json({ error: matches.message }, { status: 422 });
+    if (!canActivatePaymentStatus(payment.status)) {
+      return NextResponse.json({ received: true, ignored: true });
+    }
 
     const result = await activatePaidSubscription({
       paymentId: payment.id,
@@ -78,9 +91,34 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true, activated: result.ok });
   }
 
+  if (event.eventType === "refund.created") {
+    if (!isSuccessfulRefundStatus(event.status)) {
+      return NextResponse.json({ received: true, ignored: true });
+    }
+    const refundCheck = checkRefundEvent({
+      amount: event.amount,
+      currency: event.currency,
+      status: event.status,
+      expectedCurrency: payment.currency,
+    });
+    if (!refundCheck.ok) return NextResponse.json({ error: refundCheck.message }, { status: 422 });
+
+    const result = await recordRefund({
+      orderId,
+      eventId: event.eventId,
+      razorpayPaymentId: event.paymentId,
+      refundId: event.refundId,
+      refundAmount: event.amount,
+      refundCurrency: event.currency,
+      refundStatus: event.status,
+    });
+    if (!result.ok) return NextResponse.json(result, { status: 500 });
+    return NextResponse.json({ received: true, refunded: result.ok });
+  }
+
   const result = await recordPaymentStatus({
     orderId,
-    status: event.eventType === "payment.failed" ? "failed" : "refunded",
+    status: "failed",
     eventId: event.eventId,
     razorpayPaymentId: event.paymentId,
   });

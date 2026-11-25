@@ -180,7 +180,7 @@ export function PropertyCard({ property }: { property: PropertyListItem }) {
           </span>
         </div>
 
-        <h3 className="mt-2 font-serif md:text-xl text-forest-deep">
+        <h3 className="mt-2 font-serif md:text-lg text-forest-deep">
           <Link
             href={`/properties/${property.slug}`}
             className="transition-colors hover:text-forest-soft "

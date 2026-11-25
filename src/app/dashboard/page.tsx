@@ -21,7 +21,7 @@ export default async function DashboardPage() {
     return (
       <div className="mx-auto max-w-3xl">
         <p className="eyebrow">Overview</p>
-        <h1 className="display-title mt-3 text-4xl">Welcome to STAYESCAPE.</h1>
+        <h1 className="display-title mt-3 text-3xl md:text-4xl">Welcome to STAYESCAPE.</h1>
         <p className="mt-4 text-sm text-muted">
           Your account is ready. Explore distinctive stays across Kerala, or switch to an owner account to list your own property.
         </p>
@@ -54,17 +54,14 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">Overview</p>
-          <h1 className="display-title mt-3 text-4xl">Your properties at a glance.</h1>
+          <h1 className="display-title mt-3 text-3xl md:text-4xl">Your properties at a glance.</h1>
+          {!canAddProperty && (
+            <p className="mt-2 text-xs text-gold">Free allows one property. Upgrade to add more.</p>
+          )}
         </div>
-        {canAddProperty ? (
-          <Link href="/dashboard/properties/new" className="btn-primary">
-            Add a property <ArrowRight size={15} />
-          </Link>
-        ) : (
-          <Link href="/dashboard/subscription" className="btn-primary">
-            Upgrade to add more properties <ArrowRight size={15} />
-          </Link>
-        )}
+        <Link href="/dashboard/properties/new" className="btn-secondary">
+          Add a property <ArrowRight size={15} />
+        </Link>
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">

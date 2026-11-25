@@ -52,6 +52,16 @@ export function needsPropertySelection(input: PublicationLimitInput): boolean {
   return input.publishedCount > input.publishedLimit;
 }
 
+export function needsPropertySelectionForOwner(input: {
+  isUnlimited: boolean;
+  isPremium: boolean;
+  propertyCount: number;
+  publishedLimit: number;
+}): boolean {
+  if (input.isUnlimited || input.isPremium) return false;
+  return input.propertyCount > Math.max(1, input.publishedLimit);
+}
+
 export function canPublishProperty(
   input: PublicationLimitInput & { approved: boolean },
 ): boolean {

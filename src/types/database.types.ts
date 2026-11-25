@@ -4,7 +4,13 @@ export type PropertyStatus = "draft" | "pending" | "approved" | "rejected";
 export type PlanCode = "free" | "premium";
 export type BillingCycle = "monthly" | "six_month" | "yearly";
 export type SubscriptionStatus = "active" | "expired" | "cancelled";
-export type SubscriptionSource = "razorpay" | "admin_grant";
+export type SubscriptionSource = "razorpay" | "admin_grant" | "manual";
+export type ManualRequestStatus =
+  | "pending"
+  | "payment_submitted"
+  | "under_verification"
+  | "approved"
+  | "rejected";
 export type PaymentStatus = "pending" | "success" | "failed" | "refunded";
 export type EnquiryStatus = "new" | "read" | "replied" | "contacted" | "pending" | "completed";
 
@@ -151,6 +157,9 @@ export type PaymentRow = {
   razorpay_order_id: string;
   razorpay_payment_id: string | null;
   razorpay_signature: string | null;
+  razorpay_refund_id: string | null;
+  refunded_amount: number;
+  refunded_at: string | null;
   amount: number;
   currency: string;
   billing_cycle: BillingCycle;
@@ -158,10 +167,50 @@ export type PaymentRow = {
   created_at: string;
 };
 
+export type PaymentRefundRow = {
+  refund_id: string;
+  payment_id: string;
+  event_id: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  created_at: string;
+};
+
 export type PaymentEventRow = {
   event_id: string;
   payment_id: string;
   event_type: string;
+  created_at: string;
+};
+
+export type ManualSubscriptionRequestRow = Timestamps & {
+  id: string;
+  owner_id: string;
+  plan_id: string;
+  billing_cycle: BillingCycle;
+  amount: number;
+  currency: string;
+  duration_months: number;
+  status: ManualRequestStatus;
+  payment_reference: string | null;
+  proof_path: string | null;
+  verified_at: string | null;
+  verified_by: string | null;
+  verified_reference: string | null;
+  rejection_reason: string | null;
+  admin_notes: string | null;
+  approved_subscription_id: string | null;
+};
+
+export type ManualRequestHistoryRow = {
+  id: string;
+  request_id: string;
+  actor_id: string | null;
+  actor_email: string | null;
+  from_status: ManualRequestStatus | null;
+  to_status: ManualRequestStatus;
+  note: string | null;
   created_at: string;
 };
 
@@ -319,6 +368,28 @@ export type Database = {
         Partial<PaymentEventRow> & { event_id: string; payment_id: string; event_type: string },
         Partial<PaymentEventRow>
       >;
+      payment_refunds: Table<
+        PaymentRefundRow,
+        Partial<PaymentRefundRow> & { refund_id: string; payment_id: string; amount: number },
+        Partial<PaymentRefundRow>
+      >;
+      manual_subscription_requests: Table<
+        ManualSubscriptionRequestRow,
+        Partial<ManualSubscriptionRequestRow> & {
+          owner_id: string;
+          plan_id: string;
+          billing_cycle: BillingCycle;
+          amount: number;
+          currency: string;
+          duration_months: number;
+        },
+        Partial<ManualSubscriptionRequestRow>
+      >;
+      manual_request_history: Table<
+        ManualRequestHistoryRow,
+        Partial<ManualRequestHistoryRow> & { request_id: string; to_status: ManualRequestStatus },
+        Partial<ManualRequestHistoryRow>
+      >;
       enquiries: Table<
         EnquiryRow,
         Partial<EnquiryRow> & { property_id: string; name: string; email: string; message: string },
@@ -387,9 +458,72 @@ export type Database = {
         };
         Returns: Record<string, unknown>;
       };
+      record_refund: {
+        Args: {
+          p_order_id: string;
+          p_event_id?: string | null;
+          p_razorpay_payment_id?: string | null;
+          p_refund_id?: string | null;
+          p_refund_amount?: number | null;
+          p_refund_currency?: string | null;
+          p_refund_status?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
       reserve_payment_event: {
         Args: { p_event_id: string; p_payment_id: string; p_event_type: string };
         Returns: boolean;
+      };
+      create_manual_subscription_request: {
+        Args: {
+          p_owner_id: string;
+          p_plan_id: string;
+          p_billing_cycle: BillingCycle;
+          p_amount: number;
+          p_currency: string;
+          p_duration_months: number;
+          p_actor_id: string;
+          p_actor_email: string;
+        };
+        Returns: Record<string, unknown>;
+      };
+      owner_submit_manual_payment: {
+        Args: {
+          p_request_id: string;
+          p_payment_reference: string;
+          p_proof_path: string;
+          p_actor_id: string;
+        };
+        Returns: Record<string, unknown>;
+      };
+      admin_verify_manual_payment: {
+        Args: {
+          p_request_id: string;
+          p_verified_reference: string;
+          p_notes: string | null;
+          p_bank_credit_verified: boolean;
+          p_actor_id: string;
+          p_actor_email: string;
+        };
+        Returns: Record<string, unknown>;
+      };
+      admin_reject_manual_request: {
+        Args: {
+          p_request_id: string;
+          p_reason: string;
+          p_actor_id: string;
+          p_actor_email: string;
+        };
+        Returns: Record<string, unknown>;
+      };
+      admin_approve_manual_request: {
+        Args: {
+          p_request_id: string;
+          p_notes: string | null;
+          p_actor_id: string;
+          p_actor_email: string;
+        };
+        Returns: Record<string, unknown>;
       };
       get_owner_entitlement: {
         Args: { p_owner_id: string };
@@ -405,6 +539,14 @@ export type Database = {
       };
       property_has_active_premium: {
         Args: { p_property_id: string };
+        Returns: boolean;
+      };
+      public_image_limit_for_owner: {
+        Args: { p_owner_id: string };
+        Returns: number;
+      };
+      public_allows_premium_content: {
+        Args: { p_owner_id: string };
         Returns: boolean;
       };
       storage_property_path_is_owned: {
@@ -468,6 +610,7 @@ export type Database = {
       billing_cycle: BillingCycle;
       subscription_status: SubscriptionStatus;
       subscription_source: SubscriptionSource;
+      manual_request_status: ManualRequestStatus;
       payment_status: PaymentStatus;
     };
     CompositeTypes: Record<string, never>;

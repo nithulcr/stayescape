@@ -10,7 +10,7 @@ export default async function AdminPaymentsPage() {
   return (
     <>
       <p className="eyebrow">Billing</p>
-      <h1 className="display-title mt-3 text-4xl">Payments.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Payments.</h1>
 
       {payments.length ? (
         <div className="surface-card mt-8 overflow-x-auto">

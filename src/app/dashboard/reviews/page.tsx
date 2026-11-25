@@ -30,7 +30,7 @@ export default async function OwnerReviewsPage({
   return (
     <>
       <p className="eyebrow">Guest feedback</p>
-      <h1 className="display-title mt-3 text-4xl">Reviews.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Reviews.</h1>
       <p className="mt-3 text-sm text-muted">
         {pendingCount
           ? `${pendingCount} review${pendingCount === 1 ? "" : "s"} awaiting your approval.`

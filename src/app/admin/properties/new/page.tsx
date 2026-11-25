@@ -22,7 +22,7 @@ export default async function NewAdminPropertyPage() {
   return (
     <div className="mx-auto max-w-4xl">
       <p className="eyebrow">Admin tools</p>
-      <h1 className="display-title mt-3 text-4xl">Add a property.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Add a property.</h1>
       <p className="mt-3 text-sm text-muted">
         Create a listing directly from the admin console and choose which account owns it. Photos can be added after creation.
       </p>

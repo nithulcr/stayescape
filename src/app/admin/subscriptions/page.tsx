@@ -10,7 +10,7 @@ export default async function AdminSubscriptionsPage() {
   return (
     <>
       <p className="eyebrow">Billing</p>
-      <h1 className="display-title mt-3 text-4xl">Subscriptions.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Subscriptions.</h1>
 
       {subscriptions.length ? (
         <div className="surface-card mt-8 overflow-x-auto">
@@ -29,6 +29,7 @@ export default async function AdminSubscriptionsPage() {
             <tbody className="divide-y divide-forest/8">
               {subscriptions.map((subscription) => {
                 const isAdminGrant = subscription.source === "admin_grant";
+                const isManual = subscription.source === "manual";
                 const durationLabel = subscription.grant_duration_months
                   ? `${subscription.grant_duration_months} month${subscription.grant_duration_months === 1 ? "" : "s"}`
                   : getBillingCycleLabel(subscription.billing_cycle);
@@ -41,9 +42,10 @@ export default async function AdminSubscriptionsPage() {
                     <td className="px-5 py-4">
                       {subscription.plan_name}
                       {isAdminGrant ? <span className="ml-1 text-xs text-muted">(Admin Grant)</span> : null}
+                      {isManual ? <span className="ml-1 text-xs text-muted">(Manual Payment)</span> : null}
                     </td>
                     <td className="px-5 py-4 text-xs text-muted">
-                      {isAdminGrant ? "Admin Grant" : "Razorpay"}
+                      {isAdminGrant ? "Admin Grant" : isManual ? "Manual (WhatsApp)" : "Razorpay"}
                       {isAdminGrant && subscription.grant_reason ? (
                         <p className="mt-0.5">{subscription.grant_reason}</p>
                       ) : null}

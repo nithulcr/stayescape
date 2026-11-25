@@ -25,6 +25,12 @@ export async function selectPublishedPropertyAction(
   const { user } = await requireOwner();
   const propertyId = parseOptional(formData.get("propertyId"));
   if (!propertyId) return { ok: false, message: "Choose a property to publish." };
+  if (formData.get("confirmSelection") !== "true") {
+    return {
+      ok: false,
+      message: "Confirm which property should be your Free property.",
+    };
+  }
 
   const supabase = await getServerClient();
   if (!supabase) return { ok: false, message: "Property service is unavailable." };
@@ -42,7 +48,7 @@ export async function selectPublishedPropertyAction(
   revalidatePath("/dashboard/properties");
   revalidatePath("/dashboard/subscription");
   revalidatePath("/properties");
-  return { ok: true, message: "Published property updated." };
+  return { ok: true, message: "Free property updated." };
 }
 
 export async function setPropertyPublicationAction(

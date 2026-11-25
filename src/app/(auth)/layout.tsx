@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { Logo } from "@/components/ui/logo";
 import { SmoothScrollProvider } from "@/components/layout/smooth-scroll-provider";
 import { media } from "@/lib/media";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (

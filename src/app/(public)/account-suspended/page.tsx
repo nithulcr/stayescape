@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
+import { createNoIndexMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Account suspended",
-  description: "This Stay Escape account is temporarily suspended.",
-};
+export const metadata: Metadata = createNoIndexMetadata(
+  "Account suspended",
+  "This Stay Escape account is temporarily suspended.",
+);
 
 export default function AccountSuspendedPage() {
   return (

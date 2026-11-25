@@ -12,6 +12,7 @@ import {
   MessageSquareText,
   MapPin,
   Settings2,
+  ShieldCheck,
   Tags,
   Users,
 } from "lucide-react";
@@ -23,6 +24,7 @@ const links = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: Crown },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
+  { href: "/admin/manual-requests", label: "Manual requests", icon: ShieldCheck },
   { href: "/admin/enquiries", label: "Enquiries", icon: Inbox },
   { href: "/admin/reviews", label: "Reviews", icon: MessageSquareText },
   { href: "/admin/review-reports", label: "Reports", icon: Flag },
@@ -31,7 +33,7 @@ const links = [
   { href: "/admin/settings", label: "Plans & amenities", icon: Settings2 },
 ];
 
-export function AdminNav() {
+export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
     <nav className="grid gap-1" aria-label="Admin navigation">
@@ -44,6 +46,7 @@ export function AdminNav() {
           <Link
             key={link.href}
             href={link.href}
+            onClick={onNavigate}
             className={cn(
               "flex items-center gap-2.5 rounded-lg px-3 py-2  transition-colors",
               active

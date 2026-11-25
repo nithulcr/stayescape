@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { PropertyCard } from "@/components/properties/property-card";
 import { PropertyFiltersBar } from "@/components/properties/property-filters";
 import { Pagination } from "@/components/properties/pagination";
@@ -9,12 +8,14 @@ import {
   getDestinations,
   getPublishedProperties,
 } from "@/lib/data/public";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import type { PropertyFilters } from "@/types";
 
-export const metadata: Metadata = {
-  title: "Explore stays",
+export const metadata = createPageMetadata({
+  title: "Explore stays in Kerala",
   description: "Browse approved resorts, villas, homestays and unique stays across Kerala.",
-};
+  path: "/properties",
+});
 
 function value(params: Record<string, string | string[] | undefined>, key: string) {
   const raw = params[key];

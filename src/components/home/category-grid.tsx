@@ -16,7 +16,7 @@ export function CategoryGrid({ categories }: { categories: CategoryRow[] }) {
         return (
           <Link
             key={category.id}
-            href={`/properties?category=${category.slug}`}
+            href={`/categories/${category.slug}`}
             className="group surface-card flex flex-col aspect-4/5 transition-transform hover:-translate-y-0.5 relative"
           >
             <div className="relative shrink-0  w-full h-full overflow-hidden rounded-lg bg-sand">

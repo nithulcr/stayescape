@@ -165,6 +165,7 @@ export type ActionResult = {
   message: string;
   fieldErrors?: Record<string, string[]>;
   propertyId?: string;
+  whatsappUrl?: string;
 };
 
 export type AuthResult = {

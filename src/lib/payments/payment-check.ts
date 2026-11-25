@@ -76,6 +76,36 @@ export function isSupportedWebhookEvent(eventType: string) {
   return (SUPPORTED_WEBHOOK_EVENTS as readonly string[]).includes(eventType);
 }
 
+export const SUCCESSFUL_REFUND_STATUSES = ["processed", "refunded", "success"] as const;
+
+export function isSuccessfulRefundStatus(status: string | null | undefined) {
+  return Boolean(
+    status &&
+      (SUCCESSFUL_REFUND_STATUSES as readonly string[]).includes(status.trim().toLowerCase()),
+  );
+}
+
+export function checkRefundEvent(input: {
+  amount: number | null;
+  currency: string | null;
+  status: string | null;
+  expectedCurrency: string;
+}): PaymentCheckResult {
+  if (!isSuccessfulRefundStatus(input.status)) {
+    return { ok: false, message: "Refund is not final." };
+  }
+  if (input.amount === null || !Number.isInteger(input.amount) || input.amount <= 0) {
+    return { ok: false, message: "Invalid refund amount." };
+  }
+  if (
+    !input.currency ||
+    input.currency.trim().toUpperCase() !== input.expectedCurrency.trim().toUpperCase()
+  ) {
+    return { ok: false, message: "Refund currency does not match this order." };
+  }
+  return { ok: true };
+}
+
 export type WebhookEventSummary = {
   eventId: string | null;
   eventType: string;
@@ -104,9 +134,11 @@ export function parseWebhookEvent(payload: unknown): WebhookEventSummary {
       asString(paymentEntity.order_id) ??
       asString(paymentFallback.order_id) ??
       asString(orderEntity.id),
-    amount: asAmount(paymentEntity.amount ?? paymentFallback.amount ?? orderEntity.amount_paid ?? orderEntity.amount),
-    currency: asString(paymentEntity.currency ?? paymentFallback.currency ?? orderEntity.currency),
-    status: asString(paymentEntity.status ?? paymentFallback.status ?? orderEntity.status),
+    amount: asAmount(
+      refundEntity.amount ?? paymentEntity.amount ?? paymentFallback.amount ?? orderEntity.amount_paid ?? orderEntity.amount,
+    ),
+    currency: asString(refundEntity.currency ?? paymentEntity.currency ?? paymentFallback.currency ?? orderEntity.currency),
+    status: asString(refundEntity.status ?? paymentEntity.status ?? paymentFallback.status ?? orderEntity.status),
     refundId: asString(refundEntity.id),
   };
 }

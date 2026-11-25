@@ -18,12 +18,12 @@ export default async function AdminPage() {
   return (
     <>
       <p className="eyebrow">Overview</p>
-      <h1 className="display-title mt-3 text-4xl">Platform health.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Platform health.</h1>
       <p className="mt-3 text-sm text-muted">
         {stats ? "Live counts from Supabase." : "Supabase is not configured yet. Add environment variables to load live data."}
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-8 grid gap-2 md:gap-4 grid-cols-2 xl:grid-cols-4">
         <StatCard label="Users" value={stats?.users ?? "—"} icon={Users} />
         <StatCard label="Owners" value={stats?.owners ?? "—"} icon={Users} />
         <StatCard label="Properties" value={stats?.properties ?? "—"} icon={Building2} />

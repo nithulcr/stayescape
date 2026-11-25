@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test tests/plans.test.mjs tests/property-limits.test.mjs tests/migration.test.mjs tests/payment-order.test.mjs tests/payment-verification.test.mjs tests/payment-webhooks.test.mjs tests/payment-activation.test.mjs tests/subscription-lifecycle.test.mjs tests/admin-premium-grants.test.mjs tests/image-upload.test.mjs tests/security-headers.test.mjs tests/admin-properties-ui.test.mjs tests/change-request-visibility.test.mjs tests/review-moderation.test.mjs"
+    "test": "node --experimental-strip-types --test tests/plans.test.mjs tests/property-limits.test.mjs tests/migration.test.mjs tests/payment-order.test.mjs tests/payment-verification.test.mjs tests/payment-webhooks.test.mjs tests/payment-activation.test.mjs tests/subscription-lifecycle.test.mjs tests/subscription-expiry-lifecycle.test.mjs tests/admin-premium-grants.test.mjs tests/image-upload.test.mjs tests/security-headers.test.mjs tests/admin-properties-ui.test.mjs tests/change-request-visibility.test.mjs tests/review-moderation.test.mjs tests/manual-subscription-payments.test.mjs tests/seo.test.mjs tests/destination-pages.test.mjs tests/district-images.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^7.0.7",

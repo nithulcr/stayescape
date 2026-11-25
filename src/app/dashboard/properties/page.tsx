@@ -11,6 +11,7 @@ import { getPlanContextForUser } from "@/lib/plans/limits";
 import { canCreateProperty } from "@/lib/plans/property-limits";
 import { fallbackPropertyImage } from "@/lib/media";
 import { formatINR, isPropertyPubliclyVisible } from "@/lib/utils";
+import { needsPropertySelectionForOwner } from "@/lib/subscriptions/expiry";
 
 export default async function OwnerPropertiesPage() {
   const { user } = await requireOwner();
@@ -19,21 +20,31 @@ export default async function OwnerPropertiesPage() {
     getPlanContextForUser(user.id),
   ]);
   const canAddProperty = canCreateProperty(properties.length, plan);
-  const approvedProperties = properties
-    .filter((property) => property.status === "approved")
-    .map((property) => ({
-      id: property.id,
-      name: property.name,
-      isPublished: property.is_published,
-      publishAfterRenewal: property.publish_after_renewal,
-    }));
+  const publicationProperties = properties.map((property) => ({
+    id: property.id,
+    name: property.name,
+    coverImage: property.cover_image || fallbackPropertyImage,
+    location:
+      [property.district, property.city, property.state].filter(Boolean).join(", ") ||
+      "Location pending",
+    status: property.status,
+    isPublished: property.is_published,
+    publishAfterRenewal: property.publish_after_renewal,
+    canSelect: true,
+  }));
+  const needsPropertySelection = needsPropertySelectionForOwner({
+    isUnlimited: plan.isUnlimited,
+    isPremium: plan.isPremium,
+    propertyCount: properties.length,
+    publishedLimit: plan.publishedLimit,
+  });
 
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">My properties</p>
-          <h1 className="display-title mt-3 text-4xl">Manage your listings.</h1>
+          <h1 className="display-title mt-3 text-3xl md:text-4xl">Manage your listings.</h1>
           <p className="mt-3 text-sm text-muted">
             {plan.isUnlimited
               ? `${properties.length} properties · ${plan.limits.planName}`
@@ -53,18 +64,12 @@ export default async function OwnerPropertiesPage() {
             </p>
           )}
         </div>
-        {canAddProperty ? (
-          <Link href="/dashboard/properties/new" className="btn-primary">Add property</Link>
-        ) : (
-          <Link href="/dashboard/subscription" className="btn-primary">
-            Upgrade to add more properties
-          </Link>
-        )}
+        <Link href="/dashboard/properties/new" className="btn-secondary">Add property</Link>
       </div>
 
       <PropertyPublicationControls
-        properties={approvedProperties}
-        needsSelection={plan.needsPropertySelection}
+        properties={publicationProperties}
+        needsSelection={needsPropertySelection}
       />
 
       {properties.length ? (
@@ -80,7 +85,7 @@ export default async function OwnerPropertiesPage() {
                   className="object-cover"
                 />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 lg:flex-1">
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-serif text-xl text-forest-deep">{property.name}</h2>
                   <StatusPill status={property.status} />
@@ -91,21 +96,21 @@ export default async function OwnerPropertiesPage() {
                   )}
                   {property.is_featured && <StatusPill status="premium">Featured</StatusPill>}
                 </div>
-                <p className="mt-1 text-xs text-muted">
+                <p className="mt-3 md:mt-1 text-xs text-muted">
                   {[property.district, property.city, property.state].filter(Boolean).join(", ") || "Location pending"}
                   {property.price_per_night ? ` · ${formatINR(property.price_per_night)} / night` : ""}
                 </p>
-                <p className="mt-2 line-clamp-2 text-sm text-charcoal/70">
+                <p className="mt-2 line-clamp-2 text-xs md:text-sm text-charcoal/70">
                   {property.short_description ?? "No description yet."}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {isPropertyPubliclyVisible(property) && (
-                  <Link href={`/properties/${property.slug}`} target="_blank" className="btn-secondary !px-3 !py-2">
+                  <Link href={`/properties/${property.slug}`} target="_blank" className="btn-secondary !px-3 !py-2 text-xs">
                     <Eye size={14} /> View
                   </Link>
                 )}
-                <Link href={`/dashboard/properties/${property.id}`} className="btn-secondary !px-3 !py-2">
+                <Link href={`/dashboard/properties/${property.id}`} className="btn-primary !px-3 !py-2 text-xs">
                   <Pencil size={14} /> Edit
                 </Link>
                 <form action={deletePropertyAction}>

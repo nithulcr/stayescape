@@ -8,10 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatusPill } from "@/components/ui/status-pill";
 import { getAllUsers } from "@/lib/data/admin";
 import { getAuthContext, isSuperAdminRole } from "@/lib/auth/guards";
-import {
-  getAdminPlanLabel,
-  isActivePremiumSubscription,
-} from "@/lib/subscriptions/admin-grants";
+import { getEffectivePlan } from "@/lib/subscriptions/effective-plan";
 import { formatDate } from "@/lib/utils";
 
 const roleOptions = [
@@ -32,20 +29,31 @@ export default async function AdminUsersPage({
   const viewerId = context?.user.id;
 
   const userViews = users.map((user) => {
-    const hasActivePremium = isActivePremiumSubscription({
-      status: user.subscription_status ?? "",
+    const effectivePlan = getEffectivePlan({
+      role: user.role,
       planCode: user.plan_code,
+      status: user.subscription_status,
       expiresAt: user.expires_at,
+      source: user.subscription_source,
     });
+    const expiresAtText =
+      effectivePlan.isPremium && user.expires_at ? formatDate(user.expires_at) : null;
+    const planNote = effectivePlan.isAdminAccess
+      ? "No subscription required"
+      : effectivePlan.effectiveStatus === "active"
+        ? expiresAtText
+          ? `Expires ${expiresAtText}`
+          : "Active"
+        : effectivePlan.effectiveStatus === "cancelled"
+          ? "Cancelled"
+          : effectivePlan.effectiveStatus === "expired"
+            ? "Expired"
+            : null;
     return {
       ...user,
-      hasActivePremium,
-      planLabel: getAdminPlanLabel(
-        user.plan_name,
-        hasActivePremium ? user.subscription_source : null,
-        hasActivePremium,
-      ),
-      expiresAtText: user.expires_at ? formatDate(user.expires_at) : null,
+      hasActivePremium: effectivePlan.isPremium,
+      planLabel: effectivePlan.label,
+      planNote,
     };
   });
   const manageableUsers: ManageableAdminUser[] = userViews
@@ -55,7 +63,8 @@ export default async function AdminUsersPage({
       name: user.full_name ?? "Unnamed user",
       email: user.email,
       planLabel: user.planLabel,
-      expiresAt: user.expiresAtText,
+      expiresAt:
+        user.hasActivePremium && user.expires_at ? formatDate(user.expires_at) : null,
       canGrant: !user.hasActivePremium,
       canExtend: user.plan_code === "premium",
       canRevoke: user.hasActivePremium,
@@ -65,7 +74,7 @@ export default async function AdminUsersPage({
   return (
     <>
       <p className="eyebrow">Accounts</p>
-      <h1 className="display-title mt-3 text-4xl">Users.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Users.</h1>
       <p className="mt-3 text-sm text-muted">
         {canManageRoles
           ? "As a super admin you can assign roles, including administrator access."
@@ -146,7 +155,7 @@ export default async function AdminUsersPage({
                     <td className="px-5 py-4 text-forest-deep">{user.property_count}</td>
                     <td className="px-5 py-4 text-xs text-muted">
                       <p>{user.planLabel}</p>
-                      {user.expiresAtText ? <p className="mt-0.5">Expires {user.expiresAtText}</p> : null}
+                      {user.planNote ? <p className="mt-0.5">{user.planNote}</p> : null}
                     </td>
                     <td className="px-5 py-4 text-xs text-muted">{formatDate(user.created_at)}</td>
                     <td className="px-5 py-4">

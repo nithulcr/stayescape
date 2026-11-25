@@ -40,7 +40,7 @@ export default async function EditPropertyPage({ params }: { params: Promise<{ i
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="eyebrow">Edit listing</p>
-          <h1 className="display-title mt-3 text-4xl">{property.name}</h1>
+          <h1 className="display-title mt-3 text-3xl md:text-4xl">{property.name}</h1>
         </div>
         <StatusPill status={property.status} />
       </div>

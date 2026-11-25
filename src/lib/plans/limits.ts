@@ -1,6 +1,9 @@
 import "server-only";
 
-import { hasPropertyPublicationColumn } from "@/lib/supabase/schema";
+import {
+  hasPropertyChangeRequestColumn,
+  hasPropertyPublicationColumn,
+} from "@/lib/supabase/schema";
 import { getServerClient } from "@/lib/supabase/server";
 import { getOwnerEntitlement } from "@/lib/subscriptions/entitlement";
 import {
@@ -118,12 +121,20 @@ async function getPublishedPropertyCount(
   userId: string,
 ): Promise<number> {
   const publicationReady = await hasPropertyPublicationColumn(supabase);
+  const changeRequestReady = publicationReady && (await hasPropertyChangeRequestColumn(supabase));
   let query = supabase
     .from("properties")
     .select("id", { count: "exact", head: true })
-    .eq("owner_id", userId)
-    .eq("status", "approved");
-  if (publicationReady) query = query.eq("is_published", true);
+    .eq("owner_id", userId);
+  if (changeRequestReady) {
+    query = query
+      .or("status.eq.approved,and(status.eq.pending,has_requested_changes.eq.true)")
+      .eq("is_published", true);
+  } else if (publicationReady) {
+    query = query.eq("status", "approved").eq("is_published", true);
+  } else {
+    query = query.eq("status", "approved");
+  }
   const { count } = await query;
   return count ?? 0;
 }

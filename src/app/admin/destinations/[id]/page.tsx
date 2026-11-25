@@ -11,7 +11,7 @@ export default async function EditDestinationPage({ params }: { params: Promise<
   return (
     <div className="mx-auto max-w-3xl">
       <p className="eyebrow">Content</p>
-      <h1 className="display-title mt-3 text-4xl">Edit {destination.name}.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Edit {destination.name}.</h1>
       <div className="surface-card mt-8 p-6">
         <DestinationForm destination={destination} />
       </div>

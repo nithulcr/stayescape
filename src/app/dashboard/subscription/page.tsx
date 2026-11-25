@@ -1,31 +1,67 @@
-import Link from "next/link";
 import { AlertTriangle, CheckCircle2, Crown } from "lucide-react";
-import { CheckoutButton } from "@/components/payments/checkout-button";
+import { WhatsAppCheckoutButton } from "@/components/payments/whatsapp-checkout-button";
+import { PropertyPublicationControls } from "@/components/dashboard/property-publication";
+import { ManualSubscriptionRequestsSection } from "@/components/dashboard/manual-subscription-requests";
 import { StatusPill } from "@/components/ui/status-pill";
 import { requireOwner } from "@/lib/auth/guards";
-import { getOwnerPayments } from "@/lib/data/owner";
+import { getOwnerManualRequests } from "@/lib/data/manual-requests";
+import { getOwnerPayments, getOwnerProperties, getOwnerSubscription } from "@/lib/data/owner";
+import { fallbackPropertyImage } from "@/lib/media";
 import { BILLING_CYCLES, getBillingCycleLabel, getPlanPriceForBillingCycle } from "@/lib/plans/billing-cycle";
 import { getPlanContextForUser, getPlanLimits } from "@/lib/plans/limits";
 import { formatDate, formatINR } from "@/lib/utils";
+import { needsPropertySelectionForOwner } from "@/lib/subscriptions/expiry";
 
 export default async function SubscriptionPage() {
   const { user } = await requireOwner();
-  const [plan, payments, planLimits] = await Promise.all([
+  const [plan, payments, manualRequests, planLimits, properties, subscription] = await Promise.all([
     getPlanContextForUser(user.id),
     getOwnerPayments(user.id),
+    getOwnerManualRequests(user.id),
     getPlanLimits(),
+    getOwnerProperties(user.id),
+    getOwnerSubscription(user.id),
   ]);
   const verifiedPayment = Boolean(
     plan.subscriptionId &&
-      payments.some(
+      (payments.some(
         (item) => item.status === "success" && item.subscription_id === plan.subscriptionId,
-      ),
+      ) ||
+        manualRequests.some(
+          (item) => item.status === "approved" && item.approved_subscription_id === plan.subscriptionId,
+        )),
   );
+  const approvedPropertyCount = properties.filter(
+    (property) => property.status === "approved",
+  ).length;
+  const needsPropertySelection = needsPropertySelectionForOwner({
+    isUnlimited: plan.isUnlimited,
+    isPremium: plan.isPremium,
+    propertyCount: properties.length,
+    publishedLimit: plan.publishedLimit,
+  });
+  const publicationProperties = properties.map((property) => ({
+    id: property.id,
+    name: property.name,
+    coverImage: property.cover_image || fallbackPropertyImage,
+    location:
+      [property.district, property.city, property.state].filter(Boolean).join(", ") ||
+      "Location pending",
+    status: property.status,
+    isPublished: property.is_published,
+    publishAfterRenewal: property.publish_after_renewal,
+    canSelect: true,
+  }));
+  const activeSubscription = plan.subscriptionId === subscription?.id ? subscription : null;
+  const lifecycleExpiresAt = plan.expiresAt ?? subscription?.expires_at ?? null;
+  const lifecycleStartsAt =
+    activeSubscription?.starts_at ??
+    (plan.entitlement !== "admin_bypass" ? subscription?.starts_at : null);
 
   return (
     <div className="mx-auto max-w-4xl">
       <p className="eyebrow">Subscription</p>
-      <h1 className="display-title mt-3 text-4xl">Manage your plan.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Manage your plan.</h1>
 
       {plan.entitlement === "admin_bypass" && (
         <p className="mt-6 inline-flex items-center gap-2 rounded-lg bg-forest-deep px-4 py-3 text-sm text-white">
@@ -43,14 +79,26 @@ export default async function SubscriptionPage() {
             <AlertTriangle size={16} /> Your Premium plan has expired.
           </p>
           <p className="mt-1 text-xs">
-            Premium features are paused. {plan.publishedCount} of your approved properties are
-            published; the plan limit is {plan.publishedLimit}.
+            Premium features are paused. Nothing was deleted: all {properties.length} of your
+            properties, their photos, enquiries, and reviews are still in your account. Only one
+            approved property can stay publicly visible on the Free plan.
           </p>
-          {plan.needsPropertySelection ? (
-            <Link href="/dashboard/properties" className="mt-2 inline-block text-xs font-semibold underline">
-              Choose which property stays published
-            </Link>
-          ) : null}
+          <p className="mt-1 text-xs">
+            Currently {plan.publishedCount} of {plan.publishedLimit} allowed properties are
+            published. {approvedPropertyCount} approved properties are eligible to be selected.
+          </p>
+          {needsPropertySelection ? (
+            <PropertyPublicationControls
+              properties={publicationProperties}
+              needsSelection
+              showPublishControls={false}
+            />
+          ) : (
+            <p className="mt-2 text-xs">
+              Your visible listings are already within the Free plan limit. Upgrade at any time to
+              restore the remaining eligible properties.
+            </p>
+          )}
         </div>
       )}
 
@@ -66,6 +114,13 @@ export default async function SubscriptionPage() {
                 ? "Unlimited properties · Unlimited images per property"
                 : `${plan.limits.maxProperties} properties · ${plan.limits.maxImagesPerProperty} images per property`}
             </p>
+            <p className="mt-1 text-xs text-muted">
+              {properties.length} properties owned · {approvedPropertyCount} approved ·{" "}
+              {plan.isUnlimited ? "Unlimited" : plan.limits.maxProperties} currently allowed
+            </p>
+            {lifecycleStartsAt && plan.entitlement !== "admin_bypass" ? (
+              <p className="mt-1 text-xs text-muted">Plan started {formatDate(lifecycleStartsAt)}</p>
+            ) : null}
             {plan.entitlement !== "admin_bypass" && (
               <p className="mt-1 text-xs text-muted">
                 {plan.publishedCount} of {plan.publishedLimit} approved properties published.
@@ -78,24 +133,35 @@ export default async function SubscriptionPage() {
             <StatusPill status={plan.status} />
           )}
         </div>
-        {plan.expiresAt && plan.entitlement !== "admin_bypass" && (
+        {lifecycleExpiresAt && plan.entitlement !== "admin_bypass" && (
           <p className="mt-4 text-sm text-muted">
-            {plan.isExpired ? "Expired on" : "Valid until"} {formatDate(plan.expiresAt)}
+            {plan.isExpired ? "Expired on" : "Valid until"} {formatDate(lifecycleExpiresAt)}
             {plan.isPremium && plan.daysRemaining !== null ? ` · ${plan.daysRemaining} days remaining` : ""}
           </p>
         )}
-        {!plan.isPremium && (
-          <div className="mt-7 grid gap-3 sm:grid-cols-3">
-            {BILLING_CYCLES.map((billingCycle) => (
-              <CheckoutButton
-                key={billingCycle}
-                billingCycle={billingCycle}
-                label={`${getBillingCycleLabel(billingCycle)} · ${formatINR(getPlanPriceForBillingCycle(planLimits.premium, billingCycle))}`}
-              />
-            ))}
+        {plan.entitlement !== "admin_bypass" && (
+          <div className="mt-7">
+            <p className="mb-3 text-sm font-semibold text-forest-deep">
+              {plan.isPremium ? "Renew or extend Premium" : "Upgrade to Premium"}
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {BILLING_CYCLES.map((billingCycle) => (
+                <div key={billingCycle} className="rounded-lg border border-forest/10 p-3">
+                  <p className="text-sm font-semibold text-forest-deep">
+                    {getBillingCycleLabel(billingCycle)} · {formatINR(getPlanPriceForBillingCycle(planLimits.premium, billingCycle))}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">Pay by bank transfer or UPI, then submit your transaction details.</p>
+                  <div className="mt-3">
+                    <WhatsAppCheckoutButton billingCycle={billingCycle} />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </section>
+
+      <ManualSubscriptionRequestsSection requests={manualRequests} />
 
       <section className="surface-card mt-6 overflow-hidden">
         <div className="flex items-center gap-2 border-b border-forest/10 px-6 py-4">

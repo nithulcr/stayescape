@@ -61,7 +61,7 @@ export function SiteHeader() {
   const closeMenu = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-forest/10 bg-ivory/95 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-forest/10 bg-forest backdrop-blur-md">
       <div className="site-container flex h-[75px] md:h-[85px] items-center justify-between gap-6">
         <Link
           href="/"
@@ -69,7 +69,7 @@ export function SiteHeader() {
           aria-label={`${user ? user.name : "STAYESCAPE"} home`}
         >
           <Image
-            src="/logo2.png"
+            src="/logo-white.png"
             width="300"
             height="70"
             alt={user ? user.name : "STAYESCAPE"}
@@ -91,8 +91,8 @@ export function SiteHeader() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "relative py-2 text-[.95rem] font-[400] text-charcoal/75 transition-colors hover:text-forest h-full items-center flex",
-                  active && "text-forest",
+                  "relative py-2 text-[1rem] font-[300]  text-white transition-colors hover:text-ivory h-full items-center flex",
+                  active && "text-ivory",
                 )}
               >
                 {link.label}
@@ -109,7 +109,7 @@ export function SiteHeader() {
             <>
               <Link
                 href={isAdmin ? "/admin" : "/dashboard"}
-                className="btn-secondary !px-4 !py-2"
+                className="btn-primary bg-lime  hover:!bg-gold !px-4 !py-2"
               >
                 {isAdmin ? (
                   <ShieldCheck size={15} />
@@ -131,7 +131,7 @@ export function SiteHeader() {
             <>
               <Link
                 href="/login"
-                className="btn-secondary !px-4 !py-2"
+                className="btn-primary bg-lime  hover:!bg-gold !px-4 !py-2"
               >
                 Login
               </Link>
@@ -177,7 +177,7 @@ export function SiteHeader() {
                     {isAdmin ? "Admin dashboard" : "Owner dashboard"}
                   </Link>
                   <form action={logoutAction}>
-                    <button type="submit" className="btn-secondary w-full">
+                    <button type="submit" className="btn-primary bg-lime  hover:!bg-gold w-full">
                       <LogOut size={15} /> Logout
                     </button>
                   </form>
@@ -187,7 +187,7 @@ export function SiteHeader() {
                   <Link
                     href="/login"
                     onClick={closeMenu}
-                    className="btn-secondary"
+                    className="btn-primary bg-lime  hover:!bg-gold"
                   >
                     Login
                   </Link>

@@ -81,6 +81,11 @@ export function CheckoutButton({
         description: `${order.planName ?? "Premium"} (${getBillingCycleLabel(billingCycle)})`,
         order_id: order.orderId,
         theme: { color: "#123D32" },
+        modal: {
+          ondismiss: () => {
+            setError("Payment was cancelled before completion. No amount was charged.");
+          },
+        },
         handler: async (payment: RazorpayResponse) => {
           const verification = await fetch("/api/payments/verify", {
             method: "POST",

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getAuthContext } from "@/lib/auth/guards";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { getPlans } from "@/lib/plans/limits";
-import { getRazorpay, razorpayConfigured } from "@/lib/payments/razorpay";
+import { getRazorpay, razorpayConfigured, razorpayKeyId } from "@/lib/payments/razorpay";
 import { preparePremiumOrder } from "@/lib/payments/order-request";
 
 export async function POST(request: NextRequest) {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "Razorpay is not configured. Add NEXT_PUBLIC_RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to enable payments.",
+          "Razorpay is not configured. Add a valid Razorpay key pair (Live Mode in production) to enable payments.",
       },
       { status: 503 },
     );
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       orderId: order.id,
       amount: prepared.amount,
       currency: prepared.currency,
-      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      keyId: razorpayKeyId,
       planName: prepared.plan.name,
       billingCycle: prepared.billingCycle,
     });

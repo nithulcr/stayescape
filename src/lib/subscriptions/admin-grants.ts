@@ -1,4 +1,5 @@
 import { getBillingDurationMonths, isBillingCycle } from "../plans/billing-cycle.ts";
+import { hasActivePremium } from "./expiry.ts";
 import type { BillingCycle } from "../../types/database.types.ts";
 
 export const ADMIN_GRANT_REASONS = [
@@ -91,17 +92,23 @@ export function isActivePremiumSubscription(
   now: Date = new Date(),
 ): boolean {
   if (!subscription) return false;
-  if (subscription.status !== "active" || subscription.planCode !== "premium") return false;
-  if (!subscription.expiresAt) return true;
-  return new Date(subscription.expiresAt).getTime() > now.getTime();
+  return hasActivePremium(
+    {
+      status:
+        subscription.status === "active" ||
+        subscription.status === "expired" ||
+        subscription.status === "cancelled"
+          ? subscription.status
+          : "expired",
+      planCode: subscription.planCode === "premium" ? "premium" : "free",
+      expiresAt: subscription.expiresAt,
+    },
+    now,
+  );
 }
 
-export function getAdminPlanLabel(
-  planName: string | null,
-  source: string | null,
-  isPremium: boolean,
-): string {
+export function getAdminPlanLabel(source: string | null, isPremium: boolean): string {
   if (isPremium && source === "admin_grant") return "Premium (Admin Grant)";
   if (isPremium) return "Premium";
-  return planName ?? "Free";
+  return "Free";
 }

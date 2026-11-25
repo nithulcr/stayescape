@@ -28,7 +28,7 @@ export default async function AdminReviewsPage({
   return (
     <>
       <p className="eyebrow">Moderation</p>
-      <h1 className="display-title mt-3 text-4xl">Reviews.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Reviews.</h1>
       <p className="mt-3 text-sm text-muted">
         {pendingCount ? `${pendingCount} review${pendingCount === 1 ? "" : "s"} awaiting moderation.` : "All reviews are up to date."}
       </p>

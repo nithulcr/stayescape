@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, Crown, Inbox, LayoutDashboard, MessageSquareText, UserRound } from "lucide-react";
+import { Building2, Crown, Inbox, LayoutDashboard, MessageSquareText, ReceiptText, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -11,10 +11,11 @@ const links = [
   { href: "/dashboard/enquiries", label: "Enquiries", icon: Inbox },
   { href: "/dashboard/reviews", label: "Reviews", icon: MessageSquareText },
   { href: "/dashboard/subscription", label: "Subscription", icon: Crown },
+  { href: "/dashboard/manual-requests", label: "Payment requests", icon: ReceiptText },
   { href: "/dashboard/profile", label: "Profile", icon: UserRound },
 ];
 
-export function DashboardNav() {
+export function DashboardNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
     <nav className="grid gap-1" aria-label="Dashboard navigation">
@@ -27,6 +28,7 @@ export function DashboardNav() {
           <Link
             key={link.href}
             href={link.href}
+            onClick={onNavigate}
             className={cn(
               "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
               active

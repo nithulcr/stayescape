@@ -12,7 +12,7 @@ export default async function AdminEnquiriesPage() {
   return (
     <>
       <p className="eyebrow">Messages</p>
-      <h1 className="display-title mt-3 text-4xl">Enquiries.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Enquiries.</h1>
 
       {enquiries.length ? (
         <div className="mt-8 grid gap-4">

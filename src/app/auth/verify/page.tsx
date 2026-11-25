@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BadgeCheck } from "lucide-react";
 
-export const metadata: Metadata = { title: "Email verified" };
+export const metadata: Metadata = {
+  title: "Email verified",
+  robots: { index: false, follow: false },
+};
 
 export default function VerifyPage() {
   return (

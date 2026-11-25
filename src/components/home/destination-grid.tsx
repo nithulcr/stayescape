@@ -57,7 +57,7 @@ export function DestinationGrid({
               </span>
               <h3 className="mt-1.5 font-serif text-xl">{destination.name}</h3>
               {destination.short_description && (
-                <p className="mt-2 line-clamp-2 text-xs text-white/80">{destination.short_description}</p>
+                <p className="mt-2 line-clamp-2 leading-snug text-[14px] text-white/80">{destination.short_description}</p>
               )}
             </div>
             <span className="absolute right-4 top-4 flex h-8 w-8 translate-y-1 items-center justify-center rounded-full bg-ivory/90 text-forest opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">

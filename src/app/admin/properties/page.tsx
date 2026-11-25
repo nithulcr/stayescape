@@ -55,13 +55,13 @@ export default async function AdminPropertiesPage({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">Moderation</p>
-          <h1 className="display-title mt-3 text-4xl">Properties.</h1>
+          <h1 className="display-title mt-3 text-3xl md:text-4xl">Properties.</h1>
           <p className="mt-3 text-sm text-muted">
             Create listings, approve submissions, manage featured placement and
             review owner details.
           </p>
         </div>
-        <Link href="/admin/properties/new" className="btn-primary">
+        <Link href="/admin/properties/new" className="btn-secondary">
           Add property
         </Link>
       </div>

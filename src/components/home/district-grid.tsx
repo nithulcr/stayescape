@@ -7,7 +7,7 @@ export function DistrictGrid({ districts }: { districts: DistrictSummary[] }) {
   if (!districts.length) return null;
 
   return (
-    <div className="mobile-card-slider gap-5 sm:grid-cols-2 lg:grid-cols-4 mx-[-1.25rem] md:mx-0 px-[1.25rem] md:px-0">
+    <div className="mobile-card-slider gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mx-[-1.25rem] md:mx-0 px-[1.25rem] md:px-0">
       {districts.map((district) => (
         <Link
           key={district.slug}
@@ -31,8 +31,8 @@ export function DistrictGrid({ districts }: { districts: DistrictSummary[] }) {
               {district.propertyCount} {district.propertyCount === 1 ? "stay" : "stays"} available
             </p>
           </div>
-          <span className="absolute right-4 top-4 flex h-8 w-8 translate-y-1 items-center justify-center rounded-full bg-ivory/90 text-forest opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">
-            <ArrowUpRight size={15} />
+          <span className="absolute right-4 top-4 flex h-10 w-10 translate-y-1 items-center justify-center rounded-full bg-ivory/90 text-forest opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">
+            <ArrowUpRight size={20} />
           </span>
         </Link>
       ))}

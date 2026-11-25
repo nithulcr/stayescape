@@ -8,7 +8,10 @@ function isAuthorized(request: NextRequest): boolean {
   if (!secret) return false;
 
   const expected = Buffer.from(`Bearer ${secret}`);
-  const received = Buffer.from(request.headers.get("authorization") ?? "");
+  const headerSecret = request.headers.get("x-cron-secret");
+  const received = Buffer.from(
+    headerSecret ? `Bearer ${headerSecret}` : (request.headers.get("authorization") ?? ""),
+  );
   return received.length === expected.length && timingSafeEqual(received, expected);
 }
 

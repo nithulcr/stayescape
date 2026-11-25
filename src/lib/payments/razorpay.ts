@@ -4,26 +4,34 @@ import Razorpay from "razorpay";
 import { revalidatePath } from "next/cache";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { verifyPaymentSignature as verifySignature, verifyWebhookSignature as verifyWebhook } from "@/lib/payments/signatures";
+import { hasWebhookSecret, validateRazorpayKeyPair } from "@/lib/payments/razorpay-config";
 import type { RazorpayPaymentSnapshot } from "@/lib/payments/payment-check";
 import type { PaymentRow, PlanRow } from "@/types/database.types";
 
-const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-const keySecret = process.env.RAZORPAY_KEY_SECRET;
-const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET?.trim();
+const razorpayConfig = validateRazorpayKeyPair({
+  keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+  keySecret: process.env.RAZORPAY_KEY_SECRET,
+  isProduction: process.env.NODE_ENV === "production",
+});
 
-export const razorpayConfigured = Boolean(keyId && keySecret);
+export const razorpayConfigured = razorpayConfig.ok;
+export const razorpayKeyId = razorpayConfig.ok ? razorpayConfig.keyId : null;
+export const razorpayWebhookConfigured = razorpayConfigured && hasWebhookSecret(webhookSecret);
 
 export function getRazorpay() {
-  if (!keyId || !keySecret) return null;
-  return new Razorpay({ key_id: keyId, key_secret: keySecret });
+  if (!razorpayConfig.ok) return null;
+  return new Razorpay({ key_id: razorpayConfig.keyId, key_secret: razorpayConfig.keySecret });
 }
 
 export function verifyPaymentSignature(orderId: string, paymentId: string, signature: string) {
-  return keySecret ? verifySignature(keySecret, orderId, paymentId, signature) : false;
+  if (!razorpayConfig.ok) return false;
+  return verifySignature(razorpayConfig.keySecret, orderId, paymentId, signature);
 }
 
 export function verifyWebhookSignature(payload: string, signature: string) {
-  return webhookSecret ? verifyWebhook(webhookSecret, payload, signature) : false;
+  if (!razorpayWebhookConfigured || !webhookSecret) return false;
+  return verifyWebhook(webhookSecret, payload, signature);
 }
 
 export async function getPaymentByOrderId(orderId: string) {
@@ -71,6 +79,13 @@ export type PaymentActivationResult = {
   expires_at?: string | null;
 };
 
+export type PaymentRefundResult = {
+  ok: boolean;
+  message: string;
+  refund_id?: string | null;
+  refunded_amount?: number | null;
+};
+
 export async function activatePaidSubscription(input: {
   paymentId: string;
   razorpayPaymentId: string;
@@ -115,6 +130,35 @@ export async function recordPaymentStatus(input: {
   if (error || !data) return { ok: false, message: "Could not record the payment status." };
 
   const result = data as PaymentActivationResult;
+  if (result.ok) revalidatePaymentPaths();
+  return result;
+}
+
+export async function recordRefund(input: {
+  orderId: string;
+  eventId?: string | null;
+  razorpayPaymentId?: string | null;
+  refundId?: string | null;
+  refundAmount?: number | null;
+  refundCurrency?: string | null;
+  refundStatus?: string | null;
+}): Promise<PaymentRefundResult> {
+  const admin = getAdminClient();
+  if (!admin) return { ok: false, message: "Service role key is not configured." };
+
+  const { data, error } = await admin.rpc("record_refund", {
+    p_order_id: input.orderId,
+    p_event_id: input.eventId ?? null,
+    p_razorpay_payment_id: input.razorpayPaymentId ?? null,
+    p_refund_id: input.refundId ?? null,
+    p_refund_amount: input.refundAmount ?? null,
+    p_refund_currency: input.refundCurrency ?? null,
+    p_refund_status: input.refundStatus ?? null,
+  });
+
+  if (error || !data) return { ok: false, message: "Could not record the refund." };
+
+  const result = data as PaymentRefundResult;
   if (result.ok) revalidatePaymentPaths();
   return result;
 }

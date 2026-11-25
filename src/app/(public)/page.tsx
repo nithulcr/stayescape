@@ -17,6 +17,14 @@ import {
   getRecentlyAddedProperties,
   getTopRatedProperties,
 } from "@/lib/data/public";
+import { createPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata = createPageMetadata({
+  title: "Kerala homestays, resorts and villas",
+  description:
+    "Find and compare approved homestays, resorts, villas and backwater stays across Kerala.",
+  path: "/",
+});
 
 export default async function HomePage() {
   const [destinations, categories, districts, featured, topRated, recent] = await Promise.all([

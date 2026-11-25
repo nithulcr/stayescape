@@ -57,26 +57,31 @@ Never expose `SUPABASE_SERVICE_ROLE_KEY`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHO
 
 ## Razorpay
 
-Fill `NEXT_PUBLIC_RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET`. Configure a webhook to:
+Fill `NEXT_PUBLIC_RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET`. Production must use a `rzp_live_` key ID. Configure a webhook to:
 
 ```text
 POST https://your-domain.com/api/payments/webhook
 ```
 
-Subscribe webhook events for `payment.captured` and `order.paid`. Payments stay in `pending` with clear setup errors until credentials are configured.
+Subscribe webhook events for `payment.captured`, `order.paid`, `payment.failed` and `refund.created`. Payments stay in `pending` with clear setup errors until credentials are configured.
 
 ## Subscription expiry
 
-Call the expiry endpoint from a scheduled job:
+`vercel.json` schedules the expiry endpoint daily at 00:00 UTC on Vercel, which is compatible with Hobby and paid plans. Set `CRON_SECRET` in the deployment environment; Vercel Cron sends it as a bearer token, and the endpoint also accepts `x-cron-secret` for manual callers. On Pro or Enterprise, the schedule can be shortened for faster expiry processing.
+
+For local testing or non-Vercel hosts, call the endpoint manually:
 
 ```bash
-curl -X POST https://your-domain.com/api/cron/expire-subscriptions \
+curl -X POST http://localhost:3000/api/cron/expire-subscriptions \
   -H "Authorization: Bearer $CRON_SECRET"
 ```
+
+The policy is idempotent and expires due Premium subscriptions. Owners with one property keep it automatically; owners with multiple properties must explicitly choose one Free property, and all other visible listings are unpublished without deleting data. Premium-only public content, extra images, and eligible listings are restored after renewal.
 
 ## Verification
 
 ```bash
+npm test
 npx tsc --noEmit
 npm run lint
 npm run build

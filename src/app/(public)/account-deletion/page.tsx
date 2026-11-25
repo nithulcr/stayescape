@@ -5,13 +5,15 @@ import { AccountDeletionForm } from "@/components/legal/account-deletion-form";
 import { LegalPageLayout } from "@/components/legal/legal-page-layout";
 import { getLegalDocument } from "@/content/legal";
 import { getAuthContext } from "@/lib/auth/guards";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
 const legalDocument = getLegalDocument("account-deletion");
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: legalDocument?.title ?? "Account Deletion",
   description: legalDocument?.description ?? "Stay Escape account deletion and data rights",
-};
+  path: "/account-deletion",
+});
 
 export default async function AccountDeletionPage({
   searchParams,

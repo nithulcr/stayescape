@@ -11,7 +11,7 @@ export default async function AdminReviewReportsPage() {
   return (
     <>
       <p className="eyebrow">Trust & safety</p>
-      <h1 className="display-title mt-3 text-4xl">Review reports.</h1>
+      <h1 className="display-title mt-3 text-3xl md:text-4xl">Review reports.</h1>
       <p className="mt-3 text-sm text-muted">
         Reports are stored for moderation. Actioning a report rejects the associated review.
       </p>

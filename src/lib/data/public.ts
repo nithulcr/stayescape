@@ -3,7 +3,7 @@ import "server-only";
 import { hasPropertyChangeRequestColumn, hasPropertyPublicationColumn } from "@/lib/supabase/schema";
 import { getServerClient } from "@/lib/supabase/server";
 import { districtOptions, isKeralaDistrict, keralaStateName, resolveDistrict } from "@/lib/config";
-import { fallbackPropertyImage } from "@/lib/media";
+import { fallbackPropertyImage, getDistrictFallbackImage } from "@/lib/media";
 import { slugify } from "@/lib/utils";
 import type {
   AmenityRow,
@@ -37,6 +37,41 @@ function applyPublicPropertyVisibility<
 }
 
 type SupabaseServer = NonNullable<Awaited<ReturnType<typeof getServerClient>>>;
+
+function limitImagesForPlan(images: PropertyImageRow[], limit: number): PropertyImageRow[] {
+  const visibleLimit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 1;
+  return [...images]
+    .sort((left, right) => left.position - right.position)
+    .slice(0, visibleLimit);
+}
+
+type PublicPlanAccess = {
+  imageLimit: number;
+  allowsPremiumContent: boolean;
+};
+
+async function getPublicPlanAccess(
+  supabase: SupabaseServer,
+  ownerIds: string[],
+): Promise<Map<string, PublicPlanAccess>> {
+  const uniqueOwnerIds = [...new Set(ownerIds)];
+  const entries = await Promise.all(
+    uniqueOwnerIds.map(async (ownerId) => {
+      const [imageLimitResult, premiumContentResult] = await Promise.all([
+        supabase.rpc("public_image_limit_for_owner", { p_owner_id: ownerId }),
+        supabase.rpc("public_allows_premium_content", { p_owner_id: ownerId }),
+      ]);
+      return [
+        ownerId,
+        {
+          imageLimit: Number(imageLimitResult.data ?? 1),
+          allowsPremiumContent: premiumContentResult.data === true,
+        },
+      ] as const;
+    }),
+  );
+  return new Map(entries);
+}
 
 type Lookups = {
   categories: Map<string, CategoryRow>;
@@ -140,6 +175,7 @@ function toListItem(
   images: PropertyImageRow[],
   amenities: PropertyAmenity[],
   review: ReviewSummary,
+  planAccess: PublicPlanAccess = { imageLimit: 1, allowsPremiumContent: true },
 ): PropertyListItem {
   const cover = images.find((image) => image.is_cover) ?? images[0];
   const destination = property.destination_id ? lookups.destinations.get(property.destination_id) : null;
@@ -157,11 +193,14 @@ function toListItem(
     short_description: property.short_description,
     status: property.status,
     has_requested_changes: property.has_requested_changes ?? false,
-    is_featured: property.is_featured,
+    is_featured: planAccess.allowsPremiumContent && property.is_featured,
     is_published: property.is_published ?? true,
     publish_after_renewal: property.publish_after_renewal ?? false,
-    plan_type: property.plan_type,
-    price_per_night: property.price_per_night ? Number(property.price_per_night) : null,
+    plan_type: planAccess.allowsPremiumContent ? property.plan_type : "free",
+    price_per_night:
+      planAccess.allowsPremiumContent && property.price_per_night
+        ? Number(property.price_per_night)
+        : null,
     city: destination?.name ?? null,
     state: property.state || destination?.state || null,
     district: property.district ?? null,
@@ -177,13 +216,45 @@ function toListItem(
   };
 }
 
+function applyPublicPlanAccess(
+  detail: PropertyDetail,
+  planAccess: PublicPlanAccess,
+): PropertyDetail {
+  if (planAccess.allowsPremiumContent) return detail;
+
+  return {
+    ...detail,
+    description: null,
+    address: null,
+    latitude: null,
+    longitude: null,
+    map_url: null,
+    contact_phone: null,
+    whatsapp_number: null,
+    contact_email: null,
+    website_url: null,
+    instagram_url: null,
+    facebook_url: null,
+    check_in_time: null,
+    check_out_time: null,
+    highlights: [],
+    owner_phone: null,
+    owner_whatsapp: null,
+  };
+}
+
 function sanitizeSearch(value: string | undefined) {
   return (value ?? "").replace(/[%_,()\\.*'"]/g, "").trim().slice(0, 80);
 }
 
+export type PublishedPropertyOptions = {
+  requireApproved?: boolean;
+};
+
 export async function getPublishedProperties(
   filters: PropertyFilters = {},
   pageSize = 9,
+  options: PublishedPropertyOptions = {},
 ): Promise<{ items: PropertyListItem[]; total: number }> {
   const supabase = await getServerClient();
   if (!supabase) return { items: [], total: 0 };
@@ -194,10 +265,10 @@ export async function getPublishedProperties(
       hasPropertyPublicationColumn(supabase),
       hasPropertyChangeRequestColumn(supabase),
     ]);
-    let query = applyPublicPropertyVisibility(
-      supabase.from("properties").select("*", { count: "exact" }),
-      changeRequestReady,
-    );
+    const baseQuery = supabase.from("properties").select("*", { count: "exact" });
+    let query = options.requireApproved
+      ? baseQuery.eq("status", "approved")
+      : applyPublicPropertyVisibility(baseQuery, changeRequestReady);
     if (publicationReady) query = query.eq("is_published", true);
 
     const search = sanitizeSearch(filters.q);
@@ -288,25 +359,63 @@ export async function getPublishedProperties(
 
     const properties = (data ?? []) as PropertyRow[];
     const propertyIds = properties.map((property) => property.id);
-    const [images, amenities, reviews] = await Promise.all([
+    const [images, amenities, reviews, planAccess] = await Promise.all([
       getImagesForProperties(supabase, propertyIds),
       getAmenitiesForProperties(supabase, propertyIds),
       getReviewStats(supabase, propertyIds),
+      getPublicPlanAccess(
+        supabase,
+        properties.map((property) => property.owner_id),
+      ),
     ]);
     return {
-      items: properties.map((property) =>
-        toListItem(
+      items: properties.map((property) => {
+        const access = planAccess.get(property.owner_id) ?? {
+          imageLimit: 1,
+          allowsPremiumContent: false,
+        };
+        return toListItem(
           property,
           lookups,
-          images.get(property.id) ?? [],
+          limitImagesForPlan(images.get(property.id) ?? [], access.imageLimit),
           amenities.get(property.id) ?? [],
           reviews.get(property.id) ?? { average: null, count: 0 },
-        ),
-      ),
+          access,
+        );
+      }),
       total: count ?? properties.length,
     };
   } catch {
     return { items: [], total: 0 };
+  }
+}
+
+export async function getApprovedPublishedProperties(
+  filters: PropertyFilters = {},
+  pageSize = 9,
+): Promise<{ items: PropertyListItem[]; total: number }> {
+  return getPublishedProperties(filters, pageSize, { requireApproved: true });
+}
+
+export async function getApprovedPublishedDestinationProperties(): Promise<
+  Pick<PropertyRow, "destination_id" | "district">[]
+> {
+  const supabase = await getServerClient();
+  if (!supabase) return [];
+
+  try {
+    const publicationReady = await hasPropertyPublicationColumn(supabase);
+    let query = supabase
+      .from("properties")
+      .select("destination_id,district")
+      .eq("status", "approved");
+    if (publicationReady) query = query.eq("is_published", true);
+
+    const { data, error } = await query;
+    if (error) return [];
+    return (data ?? []) as Pick<PropertyRow, "destination_id" | "district">[];
+  } catch {
+    return [];
   }
 }
 
@@ -354,10 +463,14 @@ export async function getTopRatedProperties(limit = 6, minimumReviews = 1): Prom
       .filter((property): property is PropertyRow => Boolean(property));
     if (!properties.length) return [];
 
-    const [lookups, images, amenities] = await Promise.all([
+    const [lookups, images, amenities, planAccess] = await Promise.all([
       getLookups(supabase),
       getImagesForProperties(supabase, propertyIds),
       getAmenitiesForProperties(supabase, propertyIds),
+      getPublicPlanAccess(
+        supabase,
+        properties.map((property) => property.owner_id),
+      ),
     ]);
     const statMap = new Map(qualified.map((stat) => [stat.property_id, stat]));
     const premiumChecks = await Promise.all(
@@ -385,15 +498,20 @@ export async function getTopRatedProperties(limit = 6, minimumReviews = 1): Prom
       })
       .slice(0, limit);
 
-    return sorted.map((property) =>
-      toListItem(
+    return sorted.map((property) => {
+      const access = planAccess.get(property.owner_id) ?? {
+        imageLimit: 1,
+        allowsPremiumContent: false,
+      };
+      return toListItem(
         property,
         lookups,
-        images.get(property.id) ?? [],
+        limitImagesForPlan(images.get(property.id) ?? [], access.imageLimit),
         amenities.get(property.id) ?? [],
         statMap.get(property.id) ?? { average: null, count: 0 },
-      ),
-    );
+        access,
+      );
+    });
   } catch {
     return [];
   }
@@ -465,7 +583,7 @@ export async function getPropertyBySlug(
     if (!property) return null;
 
     const lookups = await getLookups(supabase);
-    const [imageResult, amenityLinks, ownerResult] = await Promise.all([
+    const [imageResult, amenityLinks, ownerResult, planAccess] = await Promise.all([
       supabase
         .from("property_images")
         .select("*")
@@ -477,6 +595,7 @@ export async function getPropertyBySlug(
         .select("id, full_name, avatar_url, phone, whatsapp_number")
         .eq("id", property.owner_id)
         .maybeSingle(),
+      getPublicPlanAccess(supabase, [property.owner_id]),
     ]);
 
     const amenityIds = (amenityLinks.data ?? []).map((link) => link.amenity_id);
@@ -493,33 +612,43 @@ export async function getPropertyBySlug(
       }));
     }
 
-    const images = (imageResult.data ?? []) as PropertyImageRow[];
+    const access = planAccess.get(property.owner_id) ?? {
+      imageLimit: 1,
+      allowsPremiumContent: false,
+    };
+    const images = limitImagesForPlan(
+      (imageResult.data ?? []) as PropertyImageRow[],
+      access.imageLimit,
+    );
     const reviews = await getPropertyReviews(property.id, viewerId, guestToken);
     const summary = summarizeReviews(reviews);
-    const base = toListItem(property, lookups, images, amenities, summary);
-    return {
-      ...base,
-      description: property.description,
-      address: property.address,
-      latitude: property.latitude ? Number(property.latitude) : null,
-      longitude: property.longitude ? Number(property.longitude) : null,
-      map_url: property.map_url,
-      contact_phone: property.contact_phone,
-      whatsapp_number: property.whatsapp_number,
-      contact_email: property.contact_email,
-      website_url: property.website_url,
-      instagram_url: property.instagram_url,
-      facebook_url: property.facebook_url,
-      check_in_time: property.check_in_time,
-      check_out_time: property.check_out_time,
-      highlights: Array.isArray(property.highlights) ? property.highlights : [],
-      owner_id: property.owner_id,
-      owner_name: ownerResult.data?.full_name ?? null,
-      owner_avatar: ownerResult.data?.avatar_url ?? null,
-      owner_phone: ownerResult.data?.phone ?? null,
-      owner_whatsapp: ownerResult.data?.whatsapp_number ?? null,
-      reviews,
-    };
+    const base = toListItem(property, lookups, images, amenities, summary, access);
+    return applyPublicPlanAccess(
+      {
+        ...base,
+        description: property.description,
+        address: property.address,
+        latitude: property.latitude ? Number(property.latitude) : null,
+        longitude: property.longitude ? Number(property.longitude) : null,
+        map_url: property.map_url,
+        contact_phone: property.contact_phone,
+        whatsapp_number: property.whatsapp_number,
+        contact_email: property.contact_email,
+        website_url: property.website_url,
+        instagram_url: property.instagram_url,
+        facebook_url: property.facebook_url,
+        check_in_time: property.check_in_time,
+        check_out_time: property.check_out_time,
+        highlights: Array.isArray(property.highlights) ? property.highlights : [],
+        owner_id: property.owner_id,
+        owner_name: ownerResult.data?.full_name ?? null,
+        owner_avatar: ownerResult.data?.avatar_url ?? null,
+        owner_phone: ownerResult.data?.phone ?? null,
+        owner_whatsapp: ownerResult.data?.whatsapp_number ?? null,
+        reviews,
+      },
+      access,
+    );
   } catch {
     return null;
   }
@@ -589,39 +718,41 @@ export async function getDistrictSummaries(): Promise<DistrictSummary[]> {
   const supabase = await getServerClient();
   if (!supabase) return [];
 
-  const [publicationReady, changeRequestReady, destinations] = await Promise.all([
+  const [publicationReady, changeRequestReady] = await Promise.all([
     hasPropertyPublicationColumn(supabase),
     hasPropertyChangeRequestColumn(supabase),
-    getDestinations(),
   ]);
   let propertiesQuery = applyPublicPropertyVisibility(
-    supabase.from("properties").select("district,destination_id"),
+    supabase.from("properties").select("id,district"),
     changeRequestReady,
   );
   if (publicationReady) propertiesQuery = propertiesQuery.eq("is_published", true);
   const { data: properties } = await propertiesQuery;
 
-  const grouped = new Map<string, { count: number; destinationId: string | null }>();
-  for (const property of (properties ?? []) as Pick<PropertyRow, "district" | "destination_id">[]) {
+  const grouped = new Map<string, { count: number; propertyIds: string[] }>();
+  for (const property of (properties ?? []) as Pick<PropertyRow, "id" | "district">[]) {
     if (!isKeralaDistrict(property.district)) continue;
-    const current = grouped.get(property.district) ?? { count: 0, destinationId: null };
-    grouped.set(property.district, {
-      count: current.count + 1,
-      destinationId: current.destinationId ?? property.destination_id,
-    });
+    const current = grouped.get(property.district) ?? { count: 0, propertyIds: [] };
+    current.count += 1;
+    current.propertyIds.push(property.id);
+    grouped.set(property.district, current);
   }
 
-  const destinationMap = new Map(destinations.map((destination) => [destination.id, destination]));
+  const imageMap = await getImagesForProperties(supabase, [
+    ...new Set([...grouped.values()].flatMap((group) => group.propertyIds)),
+  ]);
+
   return districtOptions
     .filter((option) => grouped.has(option.name))
     .map((option) => {
       const group = grouped.get(option.name)!;
-      const destination = group.destinationId ? destinationMap.get(group.destinationId) : null;
+      const images = group.propertyIds.flatMap((propertyId) => imageMap.get(propertyId) ?? []);
+      const coverImage = (images.find((image) => image.is_cover) ?? images[0])?.public_url;
       return {
         name: option.name,
         slug: option.slug,
         state: keralaStateName,
-        image: destination?.image_url || fallbackPropertyImage,
+        image: coverImage || getDistrictFallbackImage(option.name),
         propertyCount: group.count,
       };
     });
