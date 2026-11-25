@@ -13,13 +13,13 @@ export function HomeHero({
     <section className="relative isolate overflow-hidden bg-forest-deep">
       <div className="absolute inset-0">
         <Image
-          src="/hero.jpg"
+          src="/hero.webp"
           alt="Premium resort pool surrounded by tropical greenery"
           fill
           preload
           loading="eager"
           sizes="100vw"
-          className="object-cover"
+          className="object-cover object-left"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-forest  via-forest-deep/60 to-forest-deep/40" />
       </div>
