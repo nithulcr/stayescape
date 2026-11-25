@@ -173,4 +173,6 @@ export type AuthResult = {
   ok: boolean;
   message: string;
   fieldErrors?: Record<string, string[]>;
+  email?: string;
+  confirmationRequired?: boolean;
 };

@@ -132,13 +132,6 @@ export function getPropertyImageAlt(
 export function isPropertyIndexable(property: PropertySeoInput): boolean {
   const verifiedDescription = getPropertyVerifiedDescription(property);
   const hasLocation = Boolean(trimmed(property.city) || trimmed(property.district));
-  const hasRealImage =
-    Boolean(trimmed(property.cover_image) && trimmed(property.cover_image) !== fallbackPropertyImage) ||
-    Boolean(
-      property.images?.some(
-        (image) => trimmed(image.public_url) && trimmed(image.public_url) !== fallbackPropertyImage,
-      ),
-    );
   const detailSignals = [
     Boolean(trimmed(property.category_name)),
     Boolean(property.price_per_night),
@@ -146,7 +139,6 @@ export function isPropertyIndexable(property: PropertySeoInput): boolean {
     Boolean(trimmed(property.contact_phone) || trimmed(property.contact_email) || trimmed(property.website_url)),
     Boolean(property.highlights?.length),
     Boolean(property.amenities?.length),
-    hasRealImage,
   ].filter(Boolean).length;
 
   return (
@@ -154,6 +146,7 @@ export function isPropertyIndexable(property: PropertySeoInput): boolean {
     property.status === "approved" &&
     property.is_published !== false &&
     property.has_requested_changes !== true &&
+    Boolean(trimmed(property.destination_slug)) &&
     hasLocation &&
     verifiedDescription.length >= PROPERTY_DESCRIPTION_MIN_LENGTH &&
     detailSignals >= 1

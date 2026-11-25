@@ -16,6 +16,7 @@ type Client = SupabaseClient<Database>;
 
 type SitemapPropertyRow = {
   slug: string;
+  owner_id: string;
   updated_at: string;
   name: string;
   short_description: string | null;
@@ -79,6 +80,22 @@ function latestTimestamp(values: (string | null | undefined)[]): string | null {
   }, null);
 }
 
+async function getPublicPremiumAccess(
+  client: Client,
+  ownerIds: string[],
+): Promise<Map<string, boolean>> {
+  const uniqueOwnerIds = [...new Set(ownerIds)];
+  const entries = await Promise.all(
+    uniqueOwnerIds.map(async (ownerId) => {
+      const { data } = await client.rpc("public_allows_premium_content", {
+        p_owner_id: ownerId,
+      });
+      return [ownerId, data === true] as const;
+    }),
+  );
+  return new Map(entries);
+}
+
 export async function getSitemapRecords(): Promise<SitemapRecord[]> {
   const supabase = getPublicClient();
   if (!supabase) return STATIC_PAGES;
@@ -91,6 +108,7 @@ export async function getSitemapRecords(): Promise<SitemapRecord[]> {
 
     const propertyColumns = [
       "slug",
+      "owner_id",
       "updated_at",
       "name",
       "short_description",
@@ -129,6 +147,10 @@ export async function getSitemapRecords(): Promise<SitemapRecord[]> {
     const properties = (propertyResult.data ?? []) as unknown as SitemapPropertyRow[];
     const destinations = (destinationResult.data ?? []) as DestinationRow[];
     const categories = (categoryResult.data ?? []) as CategoryRow[];
+    const premiumByOwner = await getPublicPremiumAccess(
+      supabase,
+      properties.map((property) => property.owner_id),
+    );
     const destinationMap = new Map(destinations.map((destination) => [destination.id, destination]));
     const categoryMap = new Map(categories.map((category) => [category.id, category]));
 
@@ -192,6 +214,7 @@ export async function getSitemapRecords(): Promise<SitemapRecord[]> {
           ? destinationMap.get(property.destination_id)
           : null;
         const category = property.category_id ? categoryMap.get(property.category_id) : null;
+        const allowsPremiumContent = premiumByOwner.get(property.owner_id) === true;
         return isPropertyIndexable({
           name: property.name,
           slug: property.slug,
@@ -199,17 +222,19 @@ export async function getSitemapRecords(): Promise<SitemapRecord[]> {
           is_published: property.is_published,
           has_requested_changes: property.has_requested_changes,
           short_description: property.short_description,
-          description: property.description,
+          description: allowsPremiumContent ? property.description : null,
+          destination_slug: destination?.slug ?? null,
           city: destination?.name ?? null,
           district: property.district,
           state: property.state || destination?.state || null,
           category_name: category?.name ?? null,
-          price_per_night: property.price_per_night,
-          address: property.address,
-          contact_phone: property.contact_phone,
-          contact_email: property.contact_email,
-          website_url: property.website_url,
-          highlights: Array.isArray(property.highlights) ? property.highlights : [],
+          price_per_night: allowsPremiumContent ? property.price_per_night : null,
+          address: allowsPremiumContent ? property.address : null,
+          contact_phone: allowsPremiumContent ? property.contact_phone : null,
+          contact_email: allowsPremiumContent ? property.contact_email : null,
+          website_url: allowsPremiumContent ? property.website_url : null,
+          highlights:
+            allowsPremiumContent && Array.isArray(property.highlights) ? property.highlights : [],
         });
       })
       .map((property) => ({

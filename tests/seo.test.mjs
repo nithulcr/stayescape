@@ -150,6 +150,7 @@ test("sitemap data uses public RLS, published filters, and category quality thre
   assert.match(data, /isDestinationIndexable/);
   assert.match(data, /isPropertyIndexable/);
   assert.match(data, /has_requested_changes/);
+  assert.match(data, /public_allows_premium_content/);
   assert.doesNotMatch(data, /applyPublicPropertyVisibility/);
   assert.match(data, /eq\("is_active", true\)/);
   assert.match(data, /CATEGORY_INDEX_THRESHOLD/);

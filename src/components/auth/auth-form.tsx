@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { MailCheck } from "lucide-react";
 import { useActionState } from "react";
 import {
   forgotPasswordAction,
   loginAction,
   registerAction,
+  resendRegistrationConfirmationAction,
   resetPasswordAction,
 } from "@/app/auth/actions";
 import type { AuthResult } from "@/types";
@@ -51,6 +53,77 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <span className="field-error">{errors[0]}</span>;
 }
 
+function RegistrationConfirmation({
+  email,
+  message,
+  confirmationRequired,
+}: {
+  email?: string;
+  message: string;
+  confirmationRequired?: boolean;
+}) {
+  const [state, formAction, pending] = useActionState<AuthResult, FormData>(
+    resendRegistrationConfirmationAction,
+    { ok: false, message: "" },
+  );
+  const showConfirmation = confirmationRequired !== false;
+
+  return (
+    <div className="surface-card p-8 text-center">
+      <MailCheck size={34} className="mx-auto text-gold" />
+      <h1 className="mt-4 font-serif text-2xl text-forest-deep">
+        {showConfirmation ? "Check your email" : "Account created"}
+      </h1>
+      <p className="mt-3 text-sm text-muted" aria-live="polite">
+        {message}
+      </p>
+
+      {showConfirmation && (
+        <>
+          {email && <p className="mt-3 break-all text-sm font-semibold text-forest-deep">{email}</p>}
+          <ol className="mt-5 space-y-2 text-left text-sm text-muted">
+            <li>
+              <span className="font-semibold text-forest-deep">1.</span> Open your inbox and find the Supabase confirmation email.
+            </li>
+            <li>
+              <span className="font-semibold text-forest-deep">2.</span> Click the confirmation link to verify your registration.
+            </li>
+            <li>
+              <span className="font-semibold text-forest-deep">3.</span> Come back here and sign in to continue.
+            </li>
+          </ol>
+
+          <form action={formAction} className="mt-6">
+            {email && <input type="hidden" name="email" value={email} />}
+            <button
+              type="submit"
+              disabled={pending || !email}
+              className="btn-secondary w-full justify-center disabled:opacity-60"
+            >
+              {pending ? "Sending..." : "Resend confirmation email"}
+            </button>
+            {state.message && (
+              <p
+                className={`mt-2 text-xs ${state.ok ? "text-forest" : "text-rose-700"}`}
+                aria-live="polite"
+              >
+                {state.message}
+              </p>
+            )}
+          </form>
+          <p className="mt-3 text-xs text-muted">
+            No email yet? Check spam or junk, then try resending.
+          </p>
+        </>
+      )}
+
+      <Link href="/login" className="btn-primary mt-4 w-full justify-center">
+        {showConfirmation ? "Go to sign in" : "Sign in"}
+      </Link>
+    </div>
+  );
+}
+
 export function AuthForm({
   mode,
   next,
@@ -66,11 +139,23 @@ export function AuthForm({
   });
   const text = copy[mode];
 
+  if (state.ok && mode === "register") {
+    return (
+      <RegistrationConfirmation
+        email={state.email}
+        message={state.message}
+        confirmationRequired={state.confirmationRequired}
+      />
+    );
+  }
+
   if (state.ok && mode !== "login") {
     return (
       <div className="surface-card p-8">
         <h1 className="font-serif text-2xl text-forest-deep">Check your inbox</h1>
-        <p className="mt-3 text-sm text-muted">{state.message}</p>
+        <p className="mt-3 text-sm text-muted" aria-live="polite">
+          {state.message}
+        </p>
         <Link href="/login" className="btn-secondary mt-6 w-full justify-center">
           Go to sign in
         </Link>

@@ -120,7 +120,7 @@ export async function registerAction(
     };
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
@@ -143,10 +143,70 @@ export async function registerAction(
     };
   }
 
+  const confirmationRequired = !data.session && !data.user?.confirmed_at;
+
   return {
     ok: true,
-    message:
-      "Account created. Check your inbox to verify your email, then sign in to continue.",
+    email: parsed.data.email,
+    confirmationRequired,
+    message: confirmationRequired
+      ? "We sent a Supabase confirmation email to your inbox. Open the link in that email to confirm your registration, then sign in."
+      : "Account created. You can sign in now.",
+  };
+}
+
+export async function resendRegistrationConfirmationAction(
+  _previous: AuthResult,
+  formData: FormData,
+): Promise<AuthResult> {
+  const parsed = forgotPasswordSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: "Please enter a valid email address.",
+      fieldErrors: schemaFieldErrors(parsed.error),
+    };
+  }
+
+  const email = parsed.data.email.toLowerCase();
+  if (!(await enforceRateLimit("register", `${email}|resend-confirmation`))) {
+    return {
+      ok: false,
+      message: "Too many confirmation requests. Please try again later.",
+    };
+  }
+
+  const supabase = await getServerClient();
+  if (!supabase) {
+    return {
+      ok: false,
+      message: "Authentication is not configured yet.",
+    };
+  }
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: `${siteUrl}/api/auth/callback?next=${encodeURIComponent("/auth/verify")}`,
+    },
+  });
+
+  if (error) {
+    logAuthError("resendRegistrationConfirmationAction", error);
+    return {
+      ok: false,
+      message: authErrorMessage(
+        error,
+        "Could not resend the confirmation email. Please try again.",
+      ),
+    };
+  }
+
+  return {
+    ok: true,
+    email,
+    message: "Confirmation email sent again. Check your inbox and spam folder.",
   };
 }
 

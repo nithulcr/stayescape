@@ -76,7 +76,8 @@ export default async function PropertyPage({
       )}
 
       <div className="site-container py-10 md:py-14">
-        <nav aria-label="Breadcrumb" className="mb-5 text-xs text-muted">
+        <div className="flex flex-wrap items-center justify-between">
+          <nav aria-label="Breadcrumb" className="mb-5 text-xs text-muted">
           <ol className="flex flex-wrap items-center gap-2">
             {getPropertyBreadcrumbLinks(property).map((crumb, index, links) => (
               <li key={crumb.path} className="flex items-center gap-2">
@@ -98,6 +99,7 @@ export default async function PropertyPage({
         <Link href="/properties" className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-forest">
           <ArrowLeft size={13} /> Back to all stays
         </Link>
+        </div>
 
         <div className="mt-6 grid gap-9 lg:grid-cols-[1.45fr_0.55fr] lg:items-start">
           <div>
@@ -105,13 +107,13 @@ export default async function PropertyPage({
               {property.category_name && property.category_slug && (
                 <Link
                   href={`/categories/${property.category_slug}`}
-                  className="rounded-full bg-[#f2eee4] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-wider text-forest hover:underline"
+                  className="rounded-full bg-[#f2eee4] px-3 py-1 border text-[0.68rem] font-semibold uppercase tracking-wider text-forest hover:underline"
                 >
                   {property.category_name}
                 </Link>
               )}
               {property.is_featured && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#fbf3e4] px-3 py-1 text-[0.68rem] font-semibold text-[#8a6a30]">
+                <span className="inline-flex items-center gap-1 rounded-full uppercase bg-gold/20 border px-3 py-1 text-[0.68rem] font-semibold text-gold">
                   <Star size={11} fill="currentColor" /> Featured
                 </span>
               )}

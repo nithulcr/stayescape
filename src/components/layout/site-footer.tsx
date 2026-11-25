@@ -59,7 +59,7 @@ export function SiteFooter() {
               <Image
                 src="/logo-white.png"
                 alt={brand.name}
-                width="300"
+                width="160"
                 height="70"
                 className="object-contain items-start w-fit h-[70px]"
               />

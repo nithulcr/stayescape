@@ -84,7 +84,7 @@ export default function ListYourPropertyPage() {
             <h2 className="section-title mt-3">Four simple steps.</h2>
           </div>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {steps.map((step, index) => (
+            {steps.map((step) => (
               <div key={step.title} className="surface-card p-6">
                
                 <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gold">

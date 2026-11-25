@@ -82,6 +82,7 @@ test("property indexability excludes unpublished, pending, changed, and thin lis
   assert.equal(isPropertyIndexable(property({ status: "rejected" })), false);
   assert.equal(isPropertyIndexable(property({ is_published: false })), false);
   assert.equal(isPropertyIndexable(property({ has_requested_changes: true })), false);
+  assert.equal(isPropertyIndexable(property({ destination_slug: null })), false);
   assert.equal(isPropertyIndexable(property({ city: null, district: null })), false);
   assert.equal(isPropertyIndexable(property({ description: null, short_description: null })), false);
   assert.equal(isPropertyIndexable(property({ description: "Short stay", short_description: null })), false);
@@ -91,6 +92,56 @@ test("property indexability excludes unpublished, pending, changed, and thin lis
     ),
     false,
   );
+});
+
+test("free and premium properties have equal SEO eligibility", async () => {
+  const { createPropertyMetadata, isPropertyIndexable } = await import(
+    "../src/lib/seo/property.ts"
+  );
+
+  const common = {
+    short_description: "A verified homestay with mountain views and a private balcony.",
+    description: null,
+    price_per_night: null,
+    contact_phone: null,
+    contact_email: null,
+    website_url: null,
+    highlights: [],
+    amenities: [],
+  };
+  const free = property({ ...common, plan_type: "free" });
+  const premium = property({ ...common, plan_type: "premium" });
+
+  assert.equal(isPropertyIndexable(free), true);
+  assert.equal(isPropertyIndexable(premium), true);
+  assert.equal(createPropertyMetadata(free).robots.index, true);
+  assert.equal(createPropertyMetadata(premium).robots.index, true);
+});
+
+test("structured data never exposes private owner or storage fields", async () => {
+  const { buildPropertyJsonLd } = await import("../src/lib/seo/property.ts");
+
+  const jsonLd = buildPropertyJsonLd({
+    property: property({
+      owner_phone: "+91 11111 11111",
+      owner_whatsapp: "+91 22222 22222",
+      storage_path: "owner-only/private.jpg",
+      instagram_url: "https://instagram.com/owner",
+      facebook_url: "https://facebook.com/owner",
+    }),
+    canonicalUrl: "https://stayescape.example/properties/hillside-stay",
+  });
+  const serialized = JSON.stringify(jsonLd);
+
+  for (const secret of [
+    "+91 11111 11111",
+    "+91 22222 22222",
+    "owner-only/private.jpg",
+    "instagram.com",
+    "facebook.com",
+  ]) {
+    assert.ok(!serialized.includes(secret), secret);
+  }
 });
 
 test("property metadata emits a production canonical or explicit noindex", async () => {
@@ -214,6 +265,7 @@ test("property page and sitemap use the shared SEO rules and verified links", ()
   assert.match(page, /aria-label="Breadcrumb"/);
   assert.match(page, /href=\{`\/categories\/\$\{property\.category_slug\}`\}/);
   assert.match(page, /href=\{`\/destinations\/\$\{property\.destination_slug\}`\}/);
+  assert.match(page, /getSimilarProperties\(property, 3\)/);
   assert.match(page, /<PropertyGallery property=\{property\} \/>/);
   assert.doesNotMatch(page, /cover_image \?\? fallbackPropertyImage/);
 
@@ -221,4 +273,7 @@ test("property page and sitemap use the shared SEO rules and verified links", ()
   assert.match(publicData, /destination_slug: destination\?\.slug \?\? null/);
   assert.match(sitemapData, /isPropertyIndexable/);
   assert.match(sitemapData, /has_requested_changes/);
+  assert.match(sitemapData, /public_allows_premium_content/);
+  assert.match(sitemapData, /destination_slug: destination\?\.slug \?\? null/);
+  assert.match(sitemapData, /allowsPremiumContent \? property\.description : null/);
 });

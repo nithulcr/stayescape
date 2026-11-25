@@ -70,7 +70,7 @@ export function SiteHeader() {
         >
           <Image
             src="/logo-white.png"
-            width="300"
+            width="160"
             height="70"
             alt={user ? user.name : "STAYESCAPE"}
             className="object-contain items-start w-fit h-[50px] md:h-[65px]"
